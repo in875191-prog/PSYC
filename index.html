@@ -1,0 +1,970 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>사랑의 삼각형 검사 | 나의 사랑 유형 알아보기</title>
+<meta name="description" content="스턴버그의 사랑의 삼각형 이론으로 알아보는 8가지 사랑 유형 검사">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{
+  --ink:#343C4B; --sub:#646C7C; --mute:#9AA1AE; --line:#E4E7EC; --soft:#F5F6F8;
+  --agree:#33A474; --agree-d:#24835A; --dis:#88619A;
+  --int:#4298B4; --int-d:#2E7690; --int-s:#E6F2F6;
+  --pas:#F25E62; --pas-d:#D13E43; --pas-s:#FDECEC;
+  --com:#E4AE3A; --com-d:#A87810; --com-s:#FBF3E1;
+  --font:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-padding-top:80px}
+body{margin:0;background:#fff;color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.7;word-break:keep-all;overflow-wrap:break-word;-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+p,h1,h2,h3,ul,ol{margin:0}
+:focus-visible{outline:3px solid var(--int);outline-offset:3px;border-radius:6px}
+.wrap{max-width:1000px;margin:0 auto;padding:0 20px}
+.narrow{max-width:760px}
+.screen{display:none}
+.screen.active{display:block}
+.nm{font-weight:800;color:var(--int-d)}
+.int{--c:var(--int);--cd:var(--int-d);--cs:var(--int-s)}
+.pas{--c:var(--pas);--cd:var(--pas-d);--cs:var(--pas-s)}
+.com{--c:var(--com);--cd:var(--com-d);--cs:var(--com-s)}
+
+/* ---------- 헤더 ---------- */
+.hdr{position:sticky;top:0;z-index:30;background:#fff;border-bottom:1px solid var(--line)}
+.hdr .wrap{display:flex;align-items:center;height:64px;gap:24px}
+.logo{display:flex;align-items:center;gap:8px;background:none;border:0;padding:0;font-weight:800;font-size:18px;letter-spacing:-.03em;white-space:nowrap}
+.logo svg{width:28px;height:26px;display:block}
+.nav{display:none;gap:22px;margin-left:8px}
+.nav button{background:none;border:0;padding:6px 0;color:var(--sub);font-weight:600;font-size:15px}
+@media (hover:hover){.nav button:hover{color:var(--ink)}}
+@media (min-width:760px){.nav{display:flex}}
+.hdr .start{margin-left:auto;border:0;background:var(--dis);color:#fff;border-radius:999px;height:40px;padding:0 20px;font-weight:700;font-size:15px}
+body[data-screen="quiz"] .hdr .start,body[data-screen="done"] .hdr .start{display:none}
+
+/* ---------- 버튼 ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:56px;padding:0 40px;border:0;border-radius:999px;background:var(--dis);color:#fff;font-weight:800;font-size:17px;transition:background .15s,transform .1s}
+@media (hover:hover){.btn:hover{background:#74508A}}
+.btn:active{transform:scale(.98)}
+.btn.green{background:var(--agree)}
+@media (hover:hover){.btn.green:hover{background:var(--agree-d)}}
+.btn.line{background:#fff;color:var(--ink);box-shadow:inset 0 0 0 2px var(--line)}
+@media (hover:hover){.btn.line:hover{background:#fff;box-shadow:inset 0 0 0 2px var(--ink)}}
+.linkbtn{background:none;border:0;padding:0;font-weight:700;color:var(--dis);text-decoration:underline;text-underline-offset:4px}
+
+/* ---------- 시작 화면 ---------- */
+.hero{background:linear-gradient(180deg,#F1EDF6 0%,#F7F5FA 100%);text-align:center;overflow:hidden}
+.hero .wrap{padding-top:56px;padding-bottom:0}
+.hero h1{font-size:clamp(34px,8.5vw,56px);font-weight:800;line-height:1.2;letter-spacing:-.045em}
+.hero .lead{max-width:30em;margin:18px auto 0;color:var(--sub);font-size:clamp(16px,2.4vw,18px)}
+.hero .btn{margin-top:30px}
+.resume{margin-top:16px;font-size:15px;color:var(--sub)}
+.resume:empty{display:none}
+.hero-art{max-width:560px;margin:36px auto 0}
+.hero-art svg{display:block;width:100%;height:auto}
+.h-tri{transform-origin:50% 100%;animation:rise .9s cubic-bezier(.2,.8,.2,1) both}
+@keyframes rise{from{transform:translateY(40px);opacity:0}}
+
+.sec{padding:72px 0}
+.sec.soft{background:var(--soft)}
+.sec h2{text-align:center;font-size:clamp(26px,5.6vw,36px);font-weight:800;letter-spacing:-.04em;line-height:1.3}
+.sec .sub{text-align:center;color:var(--sub);max-width:34em;margin:12px auto 0}
+.steps{display:grid;gap:28px;margin-top:44px;text-align:center}
+@media (min-width:760px){.steps{grid-template-columns:repeat(3,1fr)}}
+.step .ic{width:64px;height:64px;margin:0 auto;display:grid;place-items:center;border-radius:50%;background:var(--c);color:#fff;font-weight:800;font-size:24px}
+.step h3{font-size:19px;font-weight:800;margin-top:14px}
+.step p{color:var(--sub);font-size:15.5px;margin-top:6px;max-width:20em;margin-inline:auto}
+
+.comps{display:grid;gap:16px;margin-top:44px}
+@media (min-width:760px){.comps{grid-template-columns:repeat(3,1fr)}}
+.comp{background:#fff;border-top:6px solid var(--c);border-radius:8px;padding:24px 22px}
+.comp .lt{font-size:34px;font-weight:800;color:var(--c);line-height:1}
+.comp h3{font-size:21px;font-weight:800;margin-top:10px}
+.comp .kw{font-size:14px;color:var(--mute);font-weight:600}
+.comp p{margin-top:10px;font-size:15.5px}
+
+.types{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:40px}
+@media (min-width:760px){.types{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}}
+.tcard{position:relative;border-radius:10px;padding:22px 14px 20px;text-align:center;background:var(--tbg)}
+.tcard svg{width:78px;height:72px;display:block;margin:0 auto}
+.tcard .code{display:block;margin-top:10px;font-size:15px;font-weight:800;letter-spacing:.12em}
+.tcard b{display:block;font-size:18px;font-weight:800;letter-spacing:-.03em;margin-top:2px}
+.tcard .tg{display:block;font-size:13px;color:var(--sub);margin-top:2px}
+.tcard.me{box-shadow:inset 0 0 0 3px var(--ink)}
+.tcard .me-tag{position:absolute;top:10px;right:10px;background:var(--ink);color:#fff;font-size:12px;font-weight:800;padding:1px 9px;border-radius:999px}
+.code .on{color:var(--c)}
+.code .off{color:#B9BEC8}
+
+.dept-box{display:grid;gap:24px;align-items:center}
+@media (min-width:760px){.dept-box{grid-template-columns:1fr 1.2fr;gap:48px}}
+.dept-box h2{text-align:left}
+.dept-box .sub{text-align:left;margin:12px 0 0}
+.courses{list-style:none;padding:0;display:grid;gap:10px}
+.courses li{background:#fff;border-radius:10px;padding:16px 18px}
+.courses b{font-weight:800}
+.courses span{display:block;color:var(--sub);font-size:15px;margin-top:2px}
+
+.cta-end{text-align:center;padding:72px 20px 80px}
+.cta-end h2{font-size:clamp(24px,5vw,32px);font-weight:800;letter-spacing:-.04em}
+.cta-end .btn{margin-top:24px}
+
+footer{background:var(--soft);padding:28px 0 calc(36px + env(safe-area-inset-bottom))}
+footer p{font-size:13px;color:var(--mute);line-height:1.7}
+body[data-screen="quiz"] footer{display:none}
+
+/* ---------- 대상 선택 ---------- */
+.setup{padding:56px 20px 72px;text-align:center}
+.setup h1{font-size:clamp(28px,6.4vw,38px);font-weight:800;letter-spacing:-.04em;line-height:1.3}
+.setup .sub{color:var(--sub);margin-top:10px}
+.targets{display:grid;gap:12px;margin:36px auto 0;max-width:720px;text-align:left}
+@media (min-width:640px){.targets{grid-template-columns:repeat(3,1fr)}}
+.tg-opt{position:relative;display:block;cursor:pointer}
+.tg-opt input{position:absolute;opacity:0;width:1px;height:1px}
+.tg-b{display:block;height:100%;padding:20px 18px;border:2px solid var(--line);border-radius:12px;background:#fff;transition:border-color .15s,background .15s}
+.tg-b b{display:block;font-size:17px;font-weight:800}
+.tg-b span{display:block;font-size:14px;color:var(--sub);margin-top:4px;line-height:1.5}
+.tg-opt input:checked + .tg-b{border-color:var(--dis);background:#F6F1F8}
+.tg-opt input:focus-visible + .tg-b{outline:3px solid var(--int);outline-offset:3px}
+.field{max-width:480px;margin:32px auto 0;text-align:left}
+.field label{display:block;font-weight:800;margin-bottom:8px}
+.field label small{font-weight:600;color:var(--mute);margin-left:4px}
+.field input{width:100%;font-size:17px;padding:15px 18px;border-radius:12px;border:2px solid var(--line);outline:none}
+.field input:focus{border-color:var(--dis)}
+.field input::placeholder{color:var(--mute)}
+.help{font-size:13px;color:var(--mute);margin-top:8px}
+.note{max-width:480px;margin:20px auto 0;text-align:left;padding:14px 16px;border-radius:10px;background:var(--soft);font-size:14.5px;line-height:1.6}
+.note:empty{display:none}
+.setup .btn{margin-top:32px;min-width:240px}
+
+/* ---------- 질문 ---------- */
+.qbar{position:sticky;top:64px;z-index:20;background:#fff;border-bottom:1px solid var(--line)}
+.qbar .wrap{display:flex;align-items:center;gap:14px;height:52px}
+.qbar .pg{font-size:14px;font-weight:700;color:var(--sub);white-space:nowrap;font-variant-numeric:tabular-nums}
+.qtrack{flex:1;height:8px;border-radius:999px;background:var(--soft);overflow:hidden}
+.qtrack i{display:block;height:100%;width:0;background:var(--agree);border-radius:inherit;transition:width .35s}
+.qpct{font-weight:800;font-size:14px;min-width:3em;text-align:right;font-variant-numeric:tabular-nums}
+.qhead{text-align:center;padding:32px 20px 0}
+.qhead .part{display:inline-block;font-size:14px;font-weight:800;color:var(--cd);background:var(--cs);border-radius:999px;padding:4px 14px}
+.qhead .hint{color:var(--sub);font-size:14.5px;margin-top:10px}
+.qhead .hint:empty{display:none}
+.qlist{max-width:820px;margin:0 auto;padding:0 20px}
+.q{padding:40px 0 38px;border-bottom:1px solid var(--line);text-align:center;transition:opacity .3s}
+.q:last-child{border-bottom:0}
+.q.done{opacity:.35}
+.q.done:hover,.q.done:focus-within{opacity:1}
+.q.miss .q-t::after{content:"  (답해 주세요)";color:var(--pas-d);font-size:.8em;font-weight:800}
+.q-t{font-size:clamp(19px,4.6vw,23px);font-weight:700;letter-spacing:-.03em;line-height:1.5;max-width:30em;margin:0 auto}
+.q-s{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:16px;max-width:640px;margin:26px auto 0}
+.q-s .lab{font-size:17px;font-weight:800}
+.q-s .lab.d{color:var(--dis)}
+.q-s .lab.a{color:var(--agree)}
+.cs{display:flex;align-items:center;justify-content:space-between}
+.c{display:grid;place-items:center;width:58px;height:58px;background:none;border:0;padding:0}
+.c span{display:grid;place-items:center;width:var(--s);height:var(--s);border-radius:50%;border:2.5px solid var(--bc);background:#fff;transition:background .12s,transform .12s}
+.c[data-v="1"] span,.c[data-v="7"] span{--s:56px}
+.c[data-v="2"] span,.c[data-v="6"] span{--s:46px}
+.c[data-v="3"] span,.c[data-v="5"] span{--s:37px}
+.c[data-v="4"] span{--s:29px}
+.c[data-v="1"],.c[data-v="2"],.c[data-v="3"]{--bc:var(--dis)}
+.c[data-v="4"]{--bc:#C3C7D0}
+.c[data-v="5"],.c[data-v="6"],.c[data-v="7"]{--bc:var(--agree)}
+@media (hover:hover){.c:hover span{background:var(--bc)}}
+.c:active span{transform:scale(.92)}
+.c[aria-pressed="true"] span{background:var(--bc)}
+.c[aria-pressed="true"] span::after{content:"";width:34%;height:18%;border-left:3px solid #fff;border-bottom:3px solid #fff;transform:translateY(-15%) rotate(-45deg)}
+@media (max-width:639px){
+  .q-s{grid-template-columns:1fr 1fr;gap:8px 0}
+  .q-s .cs{grid-column:1/-1;grid-row:1}
+  .q-s .lab{font-size:14px}
+  .q-s .lab.d{text-align:left}
+  .q-s .lab.a{text-align:right}
+  .c{width:44px;height:52px}
+  .c[data-v="1"] span,.c[data-v="7"] span{--s:44px}
+  .c[data-v="2"] span,.c[data-v="6"] span{--s:37px}
+  .c[data-v="3"] span,.c[data-v="5"] span{--s:30px}
+  .c[data-v="4"] span{--s:24px}
+}
+.qnav{display:flex;justify-content:center;gap:12px;padding:32px 20px 80px}
+.qnav .btn{min-width:150px;padding:0 28px}
+
+/* ---------- 완료 ---------- */
+.fin{min-height:calc(100vh - 64px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:56px 20px;background:linear-gradient(180deg,#F1EDF6 0%,#fff 100%)}
+.fin svg{width:132px;height:122px;display:block}
+.fin h1{font-size:clamp(30px,7vw,42px);font-weight:800;letter-spacing:-.045em;line-height:1.25;margin-top:24px}
+.fin p{color:var(--sub);margin-top:12px;max-width:24em}
+.fin .btn{margin-top:32px;min-width:260px}
+.fin .linkbtn{margin-top:20px}
+
+/* ---------- 결과 ---------- */
+.rhero{background:var(--tbg);text-align:center}
+.rhero .wrap{padding-top:48px;padding-bottom:52px}
+.rhero .who{font-size:16px;font-weight:700;color:var(--sub)}
+.rhero .ty{font-size:clamp(44px,12vw,72px);font-weight:900;letter-spacing:-.06em;line-height:1.15;color:var(--tc);margin-top:6px}
+.rhero .code{font-size:clamp(28px,7vw,38px);font-weight:900;letter-spacing:.18em;margin-top:6px}
+.rhero .code .off{color:rgba(52,60,75,.28)}
+.rhero .en{font-size:15px;font-weight:600;color:var(--sub);margin-top:2px}
+.rhero svg{width:170px;height:156px;display:block;margin:20px auto 0}
+.rhero .sm{font-size:18px;font-weight:700;max-width:26em;margin:20px auto 0;line-height:1.6}
+.codekey{display:flex;justify-content:center;flex-wrap:wrap;gap:6px 16px;margin-top:18px;font-size:13.5px;color:var(--sub)}
+.codekey b{font-weight:900;color:var(--ink)}
+
+.rnav{position:sticky;top:64px;z-index:20;background:#fff;border-bottom:1px solid var(--line)}
+.rnav .wrap{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;height:52px;align-items:center}
+.rnav .wrap::-webkit-scrollbar{display:none}
+.rnav button{flex:none;background:none;border:0;padding:8px 12px;font-weight:700;font-size:14.5px;color:var(--sub);border-radius:999px}
+@media (hover:hover){.rnav button:hover{background:var(--soft);color:var(--ink)}}
+
+.rsec{padding:56px 0 0}
+.rsec h2{font-size:clamp(24px,5.4vw,30px);font-weight:800;letter-spacing:-.04em;line-height:1.35}
+.rsec .sub{color:var(--sub);margin-top:6px}
+.rsec .desc{font-size:17px;margin-top:16px;line-height:1.85;max-width:40em}
+.rsec .desc + .desc{margin-top:10px}
+
+.traits{display:grid;gap:30px;margin-top:28px}
+.trait .tt{display:flex;justify-content:space-between;align-items:baseline}
+.trait .tt b{font-size:18px;font-weight:800;color:var(--cd)}
+.trait .tt span{font-size:15px;font-weight:800}
+.trait .tt span small{font-weight:600;color:var(--sub);margin-left:4px}
+.tbar{position:relative;height:12px;border-radius:999px;background:var(--cs);margin-top:10px}
+.tbar i{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:inherit;background:var(--c);transition:width 1.1s cubic-bezier(.2,.8,.2,1)}
+.tbar .dot{position:absolute;top:50%;width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;background:#fff;border:4px solid var(--c);left:0;transition:left 1.1s cubic-bezier(.2,.8,.2,1)}
+.tlab{display:flex;justify-content:space-between;font-size:13px;color:var(--mute);font-weight:600;margin-top:8px}
+.trait p{font-size:15.5px;margin-top:8px}
+.crit{font-size:13px;color:var(--mute);margin-top:22px}
+
+.tri-wrap{display:grid;gap:24px;align-items:center;margin-top:24px}
+@media (min-width:760px){.tri-wrap{grid-template-columns:1fr 1fr;gap:40px}}
+.tri-wrap svg{width:100%;max-width:400px;display:block;margin:0 auto}
+.readout + .readout{margin-top:24px}
+.readout h3{font-size:15px;font-weight:700;color:var(--sub)}
+.readout .big{font-size:30px;font-weight:900;letter-spacing:-.04em;margin-top:2px}
+.readout .big small{font-size:15px;color:var(--sub);font-weight:700;margin-left:6px;letter-spacing:0}
+.readout p{margin-top:6px;font-size:15.5px}
+.meter{height:10px;border-radius:999px;background:var(--soft);margin-top:10px;overflow:hidden}
+.meter i{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,var(--int),var(--pas),var(--com));transition:width 1.1s cubic-bezier(.2,.8,.2,1)}
+
+.gw{display:grid;gap:14px;margin-top:24px}
+@media (min-width:760px){.gw{grid-template-columns:1fr 1fr}}
+.gw > div{border-radius:12px;padding:22px}
+.gw .good{background:#E9F6EF}
+.gw .watch{background:#F4EEF7}
+.gw h3{font-size:16px;font-weight:800}
+.gw .good h3{color:var(--agree-d)}
+.gw .watch h3{color:var(--dis)}
+.gw p{font-size:15.5px;margin-top:6px}
+
+.tips{display:grid;gap:14px;margin-top:24px}
+@media (min-width:760px){.tips.two{grid-template-columns:1fr 1fr}}
+.tip{border-left:5px solid var(--c,var(--dis));padding:4px 0 4px 18px}
+.tip h3{font-size:18px;font-weight:800;color:var(--cd,var(--ink))}
+.tip h3 small{font-size:13.5px;color:var(--sub);font-weight:600;margin-left:6px}
+.tip ul{margin:10px 0 0;padding-left:1.1em}
+.tip li{margin:8px 0;font-size:15.5px}
+.insight{margin-top:20px;color:var(--sub);font-size:15px}
+
+.cols{display:grid;gap:24px;margin-top:24px}
+@media (min-width:760px){.cols{grid-template-columns:1fr 1fr}}
+.cols h3{font-size:15px;font-weight:800;color:var(--sub)}
+.items{list-style:none;padding:0;margin-top:10px;display:grid;gap:8px}
+.items li{display:flex;gap:12px;align-items:flex-start;background:var(--soft);border-radius:10px;padding:12px 14px;font-size:15px}
+.items .sc{flex:none;width:30px;height:30px;border-radius:50%;background:var(--c);color:#fff;font-weight:900;display:grid;place-items:center;font-size:14px}
+.items .cat{display:block;font-size:12.5px;color:var(--mute)}
+.items .nm{color:inherit}
+
+.booth{margin-top:64px;background:var(--soft);border-radius:14px;padding:32px 24px}
+.booth h2{font-size:clamp(22px,5vw,26px)}
+.booth .courses{margin-top:18px}
+.refs{font-size:13px;color:var(--mute);margin-top:28px}
+.refs p{padding-left:2em;text-indent:-2em;margin-top:6px}
+
+.ractions{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;padding:56px 0 16px}
+.ractions .btn{flex:1 1 220px;max-width:280px;padding:0 20px}
+.redit{text-align:center;color:var(--sub);font-size:14.5px;padding-bottom:64px}
+
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,16px);background:var(--ink);color:#fff;padding:12px 22px;border-radius:999px;opacity:0;pointer-events:none;transition:.25s;font-size:14.5px;font-weight:700;z-index:50;white-space:nowrap}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+@media print{
+  .hdr,.rnav,footer,.toast,.ractions,.redit,#intro,#setup,#quiz,#done{display:none!important}
+  .rhero,.tbar,.gw > div{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .rsec{break-inside:avoid}
+}
+</style>
+</head>
+<body data-screen="intro">
+<header class="hdr">
+  <div class="wrap">
+    <button class="logo" id="homeBtn" type="button" aria-label="처음 화면으로"><span id="logoArt"></span>사랑의 삼각형</button>
+    <nav class="nav" aria-label="주요 메뉴">
+      <button type="button" data-go="compSec">세 가지 요소</button>
+      <button type="button" data-go="typeSec">사랑 유형</button>
+      <button type="button" data-go="deptSec" id="navDept">심리학과</button>
+    </nav>
+    <button class="start" type="button" id="navStart">검사하기</button>
+  </div>
+</header>
+
+<main>
+<!-- ========== 시작 화면 ========== -->
+<section id="intro" class="screen active">
+  <div class="hero">
+    <div class="wrap">
+      <h1>내 사랑은<br>어떤 유형일까?</h1>
+      <p class="lead">45개 문장에 답하면, 스턴버그의 사랑의 삼각형 이론으로 8가지 사랑 유형 중 내 사랑과 가장 닮은 유형을 알려 드려요.</p>
+      <button class="btn green" type="button" id="heroStart">검사 시작하기</button>
+      <p class="resume" id="resumeRow"></p>
+      <div class="hero-art" id="heroArt"></div>
+    </div>
+  </div>
+
+  <section class="sec">
+    <div class="wrap">
+      <h2>이렇게 진행돼요</h2>
+      <div class="steps">
+        <div class="step int"><span class="ic">1</span><h3>한 사람 떠올리기</h3><p>사귀는 사람, 좋아하는 사람, 상상 속 이상형 중 한 명을 정해요.</p></div>
+        <div class="step pas"><span class="ic">2</span><h3>45문항 답하기</h3><p>각 문장이 내 마음과 얼마나 같은지 골라요. 5분이면 충분해요.</p></div>
+        <div class="step com"><span class="ic">3</span><h3>유형과 해석 보기</h3><p>내 사랑의 삼각형, 유형 코드, 강점과 키워 갈 점을 확인해요.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec soft" id="compSec">
+    <div class="wrap">
+      <h2>사랑을 이루는 세 가지 요소</h2>
+      <p class="sub">심리학자 로버트 스턴버그는 사랑을 세 요소로 이루어진 삼각형이라고 설명했어요. 유형 코드의 세 글자도 이 세 요소에서 왔어요.</p>
+      <div class="comps" id="compArt"></div>
+    </div>
+  </section>
+
+  <section class="sec" id="typeSec">
+    <div class="wrap">
+      <h2>8가지 사랑 유형</h2>
+      <p class="sub">대문자는 강한 요소, 소문자는 약한 요소예요. 나는 어떤 코드가 나올까요?</p>
+      <div class="types" id="typeArt"></div>
+    </div>
+  </section>
+
+  <section class="sec soft" id="deptSec">
+    <div class="wrap dept-box">
+      <div>
+        <h2 id="deptTitle"></h2>
+        <p class="sub">지금 해 볼 검사 하나에도 심리학의 여러 분야가 들어 있어요. 궁금한 점은 부스에 있는 학생들에게 편하게 물어보세요.</p>
+      </div>
+      <ul class="courses" id="courseList"></ul>
+    </div>
+  </section>
+
+  <div class="cta-end">
+    <h2>지금 내 사랑의 유형을 확인해 보세요</h2>
+    <button class="btn green" type="button" id="bandStart">검사 시작하기</button>
+  </div>
+</section>
+
+<!-- ========== 대상 선택 ========== -->
+<section id="setup" class="screen">
+  <form class="setup" id="setupForm" autocomplete="off">
+    <h1>누구를 떠올리며 답할까요?</h1>
+    <p class="sub">검사가 끝날 때까지 한 사람만 떠올려 주세요.</p>
+    <div class="targets" role="radiogroup" aria-label="떠올릴 사람" id="targetList"></div>
+    <div class="field">
+      <label for="nameInput">그 사람의 이름이나 애칭 <small>선택</small></label>
+      <input id="nameInput" type="text" maxlength="12" placeholder="예: 민지" enterkeyhint="go">
+      <p class="help">질문 속 이름 자리에 들어가요. 비워 두면 ‘그 사람’으로 나와요. 답변은 이 기기에만 저장돼요.</p>
+    </div>
+    <p class="note" id="modeNote"></p>
+    <button class="btn green" type="submit">검사 시작</button>
+  </form>
+</section>
+
+<!-- ========== 질문 ========== -->
+<section id="quiz" class="screen">
+  <div class="qbar"><div class="wrap"><span class="pg" id="qPage">1 / 9</span><div class="qtrack"><i id="qFill"></i></div><span class="qpct" id="qPct">0%</span></div></div>
+  <div class="qhead" id="qHead"><span class="part" id="qPart"></span><p class="hint" id="qHint"></p></div>
+  <div class="qlist" id="qList"></div>
+  <div class="qnav">
+    <button class="btn line" type="button" id="prevBtn">이전</button>
+    <button class="btn" type="button" id="nextBtn">다음</button>
+  </div>
+</section>
+
+<!-- ========== 검사 완료 ========== -->
+<section id="done" class="screen">
+  <div class="fin">
+    <div id="doneArt" aria-hidden="true"></div>
+    <h1>45문항에 모두 답했어요</h1>
+    <p>해석 받기를 누르면 내 사랑의 유형과 코드, 세 요소 점수와 해석을 보여 드려요.</p>
+    <button class="btn green" type="button" id="interpBtn">해석 받기</button>
+    <button class="linkbtn" type="button" id="doneReview">답변 다시 확인하기</button>
+  </div>
+</section>
+
+<!-- ========== 결과 ========== -->
+<section id="result" class="screen"></section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p id="footText"></p>
+  </div>
+</footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ================= 부스 정보 (여기만 고치면 돼요) ================= */
+var DEPT  = "심리학과";          // 예: "○○대학교 심리학과"
+var BOOTH = "축제 체험 부스";
+
+/* ================= 데이터 ================= */
+var ITEMS = [
+  {c:0,t:"나는 {N}의 행복을 위해 적극 지원한다."},
+  {c:0,t:"나는 {N:와} 따뜻한 관계를 맺고 있다."},
+  {c:0,t:"나는 힘들 때, {N}에게 의지할 수 있다."},
+  {c:0,t:"{N:은} 힘들 때 나에게 의지할 수 있다."},
+  {c:0,t:"{N:와} 나의 모든 것을 공유할 의향이 있다."},
+  {c:0,t:"{N:로}부터 상당한 정서적 지지를 받고 있다."},
+  {c:0,t:"나는 {N}에게 상당한 정서적 지지를 주고 있다."},
+  {c:0,t:"나는 {N:와} 말이 잘 통한다."},
+  {c:0,t:"내 인생에서 {N:은} 매우 중요하다."},
+  {c:0,t:"{N}에게 친밀감을 느낀다."},
+  {c:0,t:"{N:와}의 관계는 편안하다."},
+  {c:0,t:"나는 {N:을} 정말 이해하고 있다고 느낀다."},
+  {c:0,t:"나는 {N:이} 나를 정말 이해하고 있다고 느낀다."},
+  {c:0,t:"{N:을} 정말 신뢰한다."},
+  {c:0,t:"나에 관한 매우 개인적인 정보를 {N:와} 공유하고 있다."},
+  {c:1,t:"{N:을} 보기만 해도 나는 흥분된다."},
+  {c:1,t:"나는 낮에도 {N:을} 자주 생각한다."},
+  {c:1,t:"{N:와} 나의 관계는 정말 낭만적이다."},
+  {c:1,t:"나는 {N:이} 매우 매력 있다고 생각한다."},
+  {c:1,t:"{N:은} 나의 이상형이다."},
+  {c:1,t:"{N}만큼 나를 행복하게 해 주는 사람은 없을 것이다."},
+  {c:1,t:"나는 다른 사람보다도 {N:와} 함께 있고 싶다."},
+  {c:1,t:"이 세상에서 {N:와}의 관계보다 더 중요한 것은 없다."},
+  {c:1,t:"나는 {N:와} 신체적 접촉하는 것을 특히 좋아한다."},
+  {c:1,t:"{N:와}의 관계에는 '마술적'인 면이 있다."},
+  {c:1,t:"나는 {N:을} 찬미한다."},
+  {c:1,t:"나는 {N} 없는 인생은 생각할 수 없다."},
+  {c:1,t:"{N:와} 나의 관계는 열정적이다."},
+  {c:1,t:"낭만적 영화나 책을 볼 때는 {N:이} 생각난다."},
+  {c:1,t:"나는 {N}에 대해 공상하곤 한다."},
+  {c:2,t:"나는 {N}에 대해 염려하고 있다."},
+  {c:2,t:"{N:와}의 관계를 지속시키기 위해 최선을 다하고 있다."},
+  {c:2,t:"우리 사이에 타인이 끼어들지 못하게 {N}에게 최선을 다하고 있다."},
+  {c:2,t:"{N:와}의 관계가 흔들리지 않을 것임을 확신한다."},
+  {c:2,t:"어떤 난관에도 {N}에게 헌신할 것이다."},
+  {c:2,t:"{N}에 대한 나의 사랑은 평생 지속될 것이다."},
+  {c:2,t:"{N:을} 위해 항상 강한 책임감을 느낄 것이다."},
+  {c:2,t:"{N}에 대한 나의 사랑은 확고하다."},
+  {c:2,t:"{N:와} 관계가 끝나는 것은 상상도 할 수 없다."},
+  {c:2,t:"{N}에 대한 나의 사랑을 확신한다."},
+  {c:2,t:"{N:와}의 관계가 영원히 지속될 것이라고 생각한다."},
+  {c:2,t:"{N:와} 사귀기로 한 결정은 잘 한 것이다."},
+  {c:2,t:"{N}에 대한 책임감을 느낀다."},
+  {c:2,t:"{N:와}의 관계를 지속할 작정이다."},
+  {c:2,t:"{N:와} 갈등이 생긴다 해도, 우리의 관계를 계속 유지할 것이다."}
+];
+var TOTAL = ITEMS.length, PER = 5, PAGES = Math.ceil(TOTAL / PER);
+var HIGH = 5.0, MID = 3.5;
+
+var COMP = [
+  {key:"int", name:"친밀감", kw:"따뜻함 · 신뢰 · 소통",
+    about:"서로 이해하고 믿으며 편하게 기댈 수 있는 마음의 가까움이에요.",
+    ch:{color:"#FF8A3D", eyes:"happy", mouth:"smile", acc:["bubble"]},
+    lv:{high:"서로를 깊이 이해하고 믿는, 마음이 아주 가까운 상태예요.",
+        mid:"어느 정도 마음을 나누고 있지만, 더 깊이 터놓을 여지가 있어요.",
+        low:"아직 마음의 거리가 있는 편이에요. 속마음을 나누는 시간이 필요할 수 있어요."},
+    tips:["하루 10분이라도 휴대폰을 내려놓고 서로의 하루를 묻고 들어 주세요.",
+          "고민이나 속마음을 내가 먼저 조금씩 꺼내 보세요. 마음은 주고받으며 가까워져요.",
+          "상대의 이야기에 조언이나 판단보다 공감을 먼저 해 주세요."]},
+  {key:"pas", name:"열정", kw:"설렘 · 매력 · 두근거림",
+    about:"보기만 해도 설레는 끌림, 로맨틱한 감정과 신체적 끌림이에요.",
+    ch:{color:"#F0457A", eyes:"heart", mouth:"open", acc:["flame"]},
+    lv:{high:"상대에게 강한 설렘과 끌림을 느끼고 있어요.",
+        mid:"설렘은 있지만 강렬하진 않은, 잔잔한 상태예요.",
+        low:"설렘이나 로맨틱한 감정이 약한 편이에요. 오래된 관계라면 자연스러운 변화일 수도 있어요."},
+    tips:["처음 만났을 때처럼 새로운 장소나 활동을 함께 해 보세요. 새로움은 설렘을 깨워요.",
+          "상대의 매력이나 고마운 점을 말로 자주 표현해 보세요.",
+          "손잡기, 포옹처럼 작고 다정한 스킨십을 자주 나눠 보세요."]},
+  {key:"com", name:"약속·책임감", kw:"헌신 · 믿음 · 함께하는 미래",
+    about:"이 관계를 지키고 오래 함께하겠다는 결심과 책임감이에요.",
+    ch:{color:"#4F6BF0", eyes:"dot", mouth:"smile", acc:["ring"]},
+    lv:{high:"어떤 일이 있어도 이 관계를 지키려는 마음이 단단해요.",
+        mid:"관계를 이어 가고 싶지만, 확신은 아직 자라는 중이에요.",
+        low:"관계의 미래에 대한 확신이나 결심이 아직 약한 편이에요."},
+    tips:["함께하고 싶은 가까운 미래(여행, 기념일, 계획)를 구체적으로 이야기해 보세요.",
+          "작은 약속부터 꼭 지키며 서로에 대한 믿음을 쌓아 보세요.",
+          "갈등이 생기면 누가 옳은지보다 '우리'가 함께 풀 문제로 바라봐 주세요."]}
+];
+var KEEP_TIPS = ["지금처럼 고마움과 애정을 자주 표현해 주세요.",
+                 "익숙함에 기대기보다 새로운 추억을 꾸준히 함께 만들어 가세요.",
+                 "서로의 변화(진로, 생활, 관심사)를 응원하며 대화를 이어 가세요."];
+
+var TYPES = {
+  "000":{name:"비사랑", en:"Non-love", tag:"세 요소 모두 약함", bg:"#EEF0F5", tc:"#5E6A82",
+    ch:{color:"#9AA5BC", eyes:"sleepy", mouth:"flat", acc:["cloud"]},
+    sum:"지금은 사랑의 세 요소가 모두 뚜렷하지 않은 상태예요.",
+    desc:"일상적인 인간관계에 가까운 상태예요. 관계가 막 시작되어 아직 감정이 자라는 중이거나, 마음이 잠시 멀어진 시기일 수도 있어요.",
+    good:"정해진 틀 없이, 앞으로 어떤 관계로 만들어 갈지 선택할 여지가 있어요.",
+    watch:"이 관계에서 내가 무엇을 원하는지, 지금 내 마음은 어떤지 먼저 차분히 돌아보세요."},
+  "100":{name:"좋아함", en:"Liking", tag:"친밀감", bg:"#FFF0E2", tc:"#D96515",
+    ch:{color:"#FF9F43", eyes:"happy", mouth:"smile", acc:["bubble"]},
+    sum:"마음은 가깝지만, 설렘과 약속은 아직 약한 사랑이에요.",
+    desc:"친한 친구에게 느끼는 마음과 비슷해요. 함께 있으면 편하고 믿을 수 있지만, 두근거리는 설렘이나 관계의 미래에 대한 약속은 약한 편이에요.",
+    good:"서로 믿고 편안하게 기댈 수 있는, 관계의 튼튼한 바탕이 있어요.",
+    watch:"연인 관계라면 설렘을 나누는 시간과 함께할 미래에 대한 대화가 필요할 수 있어요."},
+  "010":{name:"도취적 사랑", en:"Infatuated love", tag:"열정", bg:"#FFE6EE", tc:"#D61F5A",
+    ch:{color:"#FF5C8A", eyes:"heart", mouth:"open", acc:["hearts"]},
+    sum:"강한 설렘이 중심인, 첫눈에 반한 듯한 사랑이에요.",
+    desc:"상대에게 강하게 끌리고 설레지만, 아직 서로를 깊이 알거나 관계를 약속하는 마음은 약해요. 짝사랑이나 연애 초기에 자주 나타나요.",
+    good:"강렬한 설렘은 관계를 시작하게 하는 큰 힘이 돼요.",
+    watch:"열정은 빨리 타오르고 빨리 식기도 해요. 상대를 천천히 알아 가며 마음의 거리를 좁혀 보세요."},
+  "001":{name:"공허한 사랑", en:"Empty love", tag:"약속·책임감", bg:"#E7ECFF", tc:"#3049C9",
+    ch:{color:"#5C7CFA", eyes:"dot", mouth:"small", acc:["lock"]},
+    sum:"관계를 지키려는 결심은 있지만, 마음의 온기와 설렘이 약한 사랑이에요.",
+    desc:"함께하겠다는 의지와 책임감은 단단하지만, 친밀함과 설렘은 약한 상태예요. 오래된 관계에서 감정이 식었거나, 결심이 감정보다 먼저인 관계에서 나타나기도 해요.",
+    good:"관계를 쉽게 포기하지 않는 단단한 의지가 있어요.",
+    watch:"의무감만 남지 않도록, 대화와 함께하는 즐거움을 되살려 보세요."},
+  "110":{name:"낭만적 사랑", en:"Romantic love", tag:"친밀감 + 열정", bg:"#FBE5F7", tc:"#B02FA6",
+    ch:{color:"#D45CC9", eyes:"heart", mouth:"smile", acc:["flower","hearts"]},
+    sum:"마음이 잘 통하고 설레는, 영화 속 연애 같은 사랑이에요.",
+    desc:"서로 가깝고 설렘도 큰 상태예요. 함께하는 시간이 즐겁고 로맨틱하지만, 관계의 미래에 대한 약속이나 확신은 아직 약한 편이에요.",
+    good:"마음도 가깝고 설렘도 있어서 함께하는 시간이 행복해요.",
+    watch:"오래 함께하려면 관계에 대한 믿음과 약속도 함께 키워 가는 것이 좋아요."},
+  "101":{name:"우애적 사랑", en:"Companionate love", tag:"친밀감 + 약속", bg:"#DDF5F1", tc:"#13857D",
+    ch:{color:"#22B5A9", eyes:"happy", mouth:"smile", acc:["hug"]},
+    sum:"서로를 깊이 믿고 아끼며 오래 함께하려는, 단단한 사랑이에요.",
+    desc:"오래된 연인이나 부부처럼, 깊은 우정에 가까운 사랑이에요. 마음이 가깝고 함께하려는 결심도 단단하지만, 설렘은 다소 잔잔해요.",
+    good:"안정적이고 편안해서 오래 지속되기 쉬운 관계예요.",
+    watch:"익숙함 속에서 설렘이 줄어들 수 있어요. 새로운 경험과 애정 표현으로 열정을 깨워 보세요."},
+  "011":{name:"얼빠진 사랑", en:"Fatuous love (허구적 사랑)", tag:"열정 + 약속", bg:"#EEE6FF", tc:"#7444E0",
+    ch:{color:"#9B6BFF", eyes:"spiral", mouth:"open", acc:["dizzy","ring"]},
+    sum:"뜨겁게 끌리고 굳게 약속했지만, 서로를 깊이 알아 가는 과정이 부족한 사랑이에요.",
+    desc:"짧은 만남 끝에 서둘러 약속하는 사랑처럼, 열정과 결심은 강하지만 친밀감이 약한 상태예요. 서로를 충분히 이해할 시간이 부족했을 수 있어요.",
+    good:"상대에 대한 끌림과 함께하려는 의지가 모두 강해요.",
+    watch:"서로를 충분히 이해하지 못하면 작은 갈등에도 흔들릴 수 있어요. 깊은 대화로 마음의 거리를 좁혀 보세요."},
+  "111":{name:"완전한 사랑", en:"Consummate love", tag:"세 요소 모두", bg:"#FFF3CC", tc:"#B07800",
+    ch:{color:"#FFB82E", eyes:"happy", mouth:"open", acc:["crown","hug","sparkle"]},
+    sum:"마음이 가깝고, 설레며, 함께하려는 결심도 단단한 사랑이에요.",
+    desc:"스턴버그가 말한 가장 이상적인 사랑의 모습이에요. 친밀감, 열정, 약속·책임감이 모두 강해서 균형 잡힌 큰 삼각형을 이뤄요.",
+    good:"세 요소가 고루 강한, 많은 사람이 바라는 사랑의 모습이에요.",
+    watch:"스턴버그는 완전한 사랑은 이루는 것보다 지켜 가는 것이 더 어렵다고 했어요. 지금의 노력을 꾸준히 이어 가세요."}
+};
+var TYPE_ORDER = ["000","100","010","001","110","101","011","111"];
+
+var MODES = {
+  partner:{label:"사귀는 사람", desc:"지금 연애 중인 상대", ph:"예: 민지",
+    ch:{color:"#F0457A", eyes:"happy", mouth:"smile", acc:["hug"]},
+    note:"", hint:"",
+    who:function(n){ return '<span class="nm">'+esc(n)+'</span>'+josa(n,"을")+' 향한 나의 사랑은'; },
+    tipTitle:"삼각형을 키우려면"},
+  crush:{label:"좋아하는 사람", desc:"짝사랑 중이거나 마음에 둔 상대", ph:"예: 민지",
+    ch:{color:"#FF8A3D", eyes:"heart", mouth:"small", acc:["hearts"]},
+    note:"아직 사귀는 사이가 아니라면, 관계나 약속을 묻는 문장은 '지금 내 마음'이나 '사귄다면 어떨지'를 떠올리며 답해 주세요. 사귀기 전에는 약속·책임감 점수가 낮게 나오는 것이 자연스러워요.",
+    hint:"사귀지 않는 사이라면, 지금 내 마음이나 사귄다면 어떨지 떠올리며 답해 주세요.",
+    who:function(n){ return '<span class="nm">'+esc(n)+'</span>'+josa(n,"을")+' 향한 지금 내 마음은'; },
+    tipTitle:"마음을 키워 가려면"},
+  ideal:{label:"상상 속 이상형", desc:"연인이 없다면, 내가 바라는 가상의 인물", ph:"예: 이상형",
+    ch:{color:"#9B6BFF", eyes:"happy", mouth:"smile", acc:["sparkle","cloud2"]},
+    note:"상상 속 인물과 함께하고 있다고 생각하며 답해 주세요. 이 경우 결과는 실제 관계가 아니라, 내가 사랑에 기대하는 모습인 '이상적인 삼각형'을 보여 줘요.",
+    hint:"상상 속 그 사람과 함께하고 있다고 생각하며 답해 주세요.",
+    who:function(){ return '내가 바라는 사랑은'; },
+    tipTitle:"이 결과 활용하기"}
+};
+var IDEAL_TIPS = ["가장 높은 요소가 내가 사랑에서 가장 중요하게 여기는 부분이에요. 새로운 사람을 만날 때 이 부분을 눈여겨보세요.",
+                  "가장 낮은 요소는 나에게 덜 중요한 부분이거나, 아직 잘 상상되지 않는 부분일 수 있어요.",
+                  "실제로 누군가를 만나게 되면 그 사람으로 다시 검사해서, 이상의 삼각형과 현실의 삼각형을 비교해 보세요."];
+var PAGE_TIPS = ["솔직하게 답할수록 결과가 정확해져요.","처음 떠오르는 느낌대로 골라 주세요.","정답은 없어요. 지금 내 마음 그대로!",
+                 "잘하고 있어요. 계속 가 볼까요?","절반을 넘었어요!","조금만 더 힘내요.","거의 다 왔어요.","마지막 두 페이지예요!","마지막 페이지예요!"];
+
+
+/* ================= 아이콘 ================= */
+function heart(x, y, s, c){ return '<path transform="translate('+x+' '+y+') scale('+s+')" d="M0 5C-2 1-9 0-9-5c0-4 5-6 9-1 4-5 9-3 9 1 0 5-7 6-9 10z" fill="'+c+'"/>'; }
+var COMP_COL = ["#FF8A3D","#F0457A","#4F6BF0"];
+/* bits: "101"처럼 세 요소의 강약. 강한 요소는 꼭짓점까지, 약한 요소는 안쪽으로 그린 작은 삼각형 */
+function triIcon(bits, tc, label){
+  var V = [[50,8],[8,84],[92,84]], C = [50,58.7];
+  var P = V.map(function(v,i){ var f = bits.charAt(i) === "1" ? 1 : .32; return [C[0]+(v[0]-C[0])*f, C[1]+(v[1]-C[1])*f]; });
+  var str = function(a){ return a.map(function(q){ return q[0].toFixed(1)+","+q[1].toFixed(1); }).join(" "); };
+  var s = '<svg viewBox="0 0 100 92" '+(label?'role="img" aria-label="'+esc(label)+'"':'aria-hidden="true"')+'>';
+  s += '<polygon points="'+str(V)+'" fill="#fff" stroke="#CDD0DC" stroke-width="2" stroke-linejoin="round" stroke-dasharray="3 4"/>';
+  s += '<polygon points="'+str(P)+'" fill="'+tc+'" fill-opacity=".22" stroke="'+tc+'" stroke-width="3" stroke-linejoin="round"/>';
+  P.forEach(function(q,i){ s += '<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="6" fill="'+(bits.charAt(i)==="1"?COMP_COL[i]:"#C3C6D3")+'" stroke="#fff" stroke-width="2.5"/>'; });
+  return s + '</svg>';
+}
+
+/* ================= 유틸 ================= */
+function $(s){ return document.querySelector(s); }
+function esc(s){ return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];}); }
+var PAIRS = {"은":["은","는"],"는":["은","는"],"이":["이","가"],"가":["이","가"],"을":["을","를"],"를":["을","를"],"과":["과","와"],"와":["과","와"],"로":["으로","로"]};
+function josa(word, p){
+  var pr = PAIRS[p]; if(!pr) return p;
+  var ch = String(word).trim().slice(-1), code = ch.charCodeAt(0);
+  if(code >= 0xAC00 && code <= 0xD7A3){
+    var jong = (code - 0xAC00) % 28;
+    if(p === "로") return (jong === 0 || jong === 8) ? "로" : "으로";
+    return jong > 0 ? pr[0] : pr[1];
+  }
+  return p === "로" ? "(으)로" : pr[0] + "(" + pr[1] + ")";
+}
+function dispName(){ return (state.name || "").trim() || "그 사람"; }
+function fill(text){
+  var n = dispName();
+  return text.replace(/\{N(?::([^}]+))?\}/g, function(m, p){ return '<span class="nm">'+esc(n)+'</span>' + (p ? josa(n, p) : ""); });
+}
+function r1(x){ return Math.round(x * 10) / 10; }
+function level(v){ return v >= HIGH ? "high" : (v >= MID ? "mid" : "low"); }
+var LV_TXT = {high:"높음", mid:"보통", low:"낮음"};
+function show(id){
+  ["intro","setup","quiz","done","result"].forEach(function(s){ $("#"+s).classList.toggle("active", s === id); });
+  document.body.dataset.screen = id;
+  window.scrollTo(0, 0);
+}
+var toastTimer;
+function toast(msg){ var t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(function(){ t.classList.remove("show"); }, 2000); }
+var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ================= 상태 ================= */
+var STORE = "sternberg-love-v2";
+var state = {name:"", target:"partner", answers:new Array(TOTAL).fill(null), page:0};
+function loadState(){
+  try{ var s = JSON.parse(localStorage.getItem(STORE));
+    if(s && Array.isArray(s.answers) && s.answers.length === TOTAL){ if(!MODES[s.target]) s.target = "partner"; s.page = s.page || 0; return s; } }catch(e){}
+  return null;
+}
+function saveState(){ try{ localStorage.setItem(STORE, JSON.stringify(state)); }catch(e){} }
+function mode(){ return MODES[state.target] || MODES.partner; }
+
+
+COMP_COL = ["#4298B4","#F25E62","#E4AE3A"];
+var LETTER = ["I","P","C"], LETTER_KO = ["친밀감","열정","약속·책임감"], KEYS = ["int","pas","com"];
+function codeHTML(bits){
+  return LETTER.map(function(L,i){ var on = bits.charAt(i) === "1"; return '<span class="'+KEYS[i]+' '+(on?"on":"off")+'">'+(on?L:L.toLowerCase())+'</span>'; }).join("");
+}
+function codeText(bits){ return LETTER.map(function(L,i){ return bits.charAt(i) === "1" ? L : L.toLowerCase(); }).join(""); }
+var COURSES = [
+  ["사회심리학","사람이 서로에게 끌리고 관계를 맺는 과정을 연구해요. 스턴버그의 사랑 이론도 여기서 배워요."],
+  ["심리측정과 심리검사","마음처럼 보이지 않는 것을 문항과 점수로 재는 방법을 배워요. 지금 하는 45문항도 이렇게 만든 척도예요."],
+  ["연구방법과 심리통계","설문 자료를 모아 분석하고, 결과가 믿을 만한지 검증하는 방법을 배워요."],
+  ["상담심리학","관계에서 겪는 어려움을 이해하고 돕는 방법을 배워요."]
+];
+
+/* ================= 시작 화면 ================= */
+$("#logoArt").innerHTML = triIcon("111", "#88619A");
+$("#deptTitle").textContent = DEPT + "에서는 이런 걸 배워요";
+$("#navDept").textContent = DEPT;
+$("#footText").textContent = DEPT + " " + BOOTH + " · 스턴버그(Sternberg, 1986)의 사랑의 삼각형 이론과 삼각형 사랑 척도(1997)를 바탕으로 만든 자기이해용 검사예요. 임상적 진단이 아니며, 결과는 지금 이 순간의 마음을 비춰 보는 참고 자료로 활용해 주세요.";
+
+function heroArt(){
+  var s = '<svg viewBox="0 0 600 250" role="img" aria-label="친밀감, 열정, 약속·책임감이 꼭짓점을 이루는 사랑의 삼각형">';
+  s += '<g class="h-tri">';
+  s += '<polygon points="300,22 144,250 456,250" fill="#fff"/>';
+  s += '<polygon points="300,22 144,250 300,250" fill="#4298B4" opacity=".16"/>';
+  s += '<polygon points="300,22 456,250 300,250" fill="#E4AE3A" opacity=".2"/>';
+  s += '<polygon points="300,120 206,250 394,250" fill="#F25E62" opacity=".2"/>';
+  s += '<polygon points="300,22 144,250 456,250" fill="none" stroke="#343C4B" stroke-width="3" stroke-linejoin="round"/>';
+  s += '</g>';
+  var V = [[300,30,"친밀감","I","#4298B4",336,"start"],[160,222,"열정","P","#F25E62",124,"end"],[440,222,"약속·책임감","C","#E4AE3A",476,"start"]];
+  V.forEach(function(v){
+    s += '<circle cx="'+v[0]+'" cy="'+v[1]+'" r="25" fill="'+v[4]+'" stroke="#fff" stroke-width="4"/>';
+    s += '<text x="'+v[0]+'" y="'+(v[1]+8)+'" text-anchor="middle" style="font:900 22px var(--font)" fill="#fff">'+v[3]+'</text>';
+    s += '<text x="'+v[5]+'" y="'+(v[1]+8)+'" text-anchor="'+v[6]+'" style="font:800 21px var(--font)" fill="#343C4B">'+v[2]+'</text>';
+  });
+  return s + '</svg>';
+}
+function renderIntroArt(){
+  $("#heroArt").innerHTML = heroArt();
+  $("#compArt").innerHTML = COMP.map(function(c,i){ return '<div class="comp '+c.key+'"><span class="lt">'+LETTER[i]+'</span><h3>'+c.name+'</h3><span class="kw">'+c.kw+'</span><p>'+c.about+'</p></div>'; }).join("");
+  $("#typeArt").innerHTML = typeCards(null);
+  $("#courseList").innerHTML = COURSES.map(function(c){ return '<li><b>'+c[0]+'</b><span>'+c[1]+'</span></li>'; }).join("");
+  $("#doneArt").innerHTML = '<svg viewBox="0 0 132 122"><polygon points="66,8 8,114 124,114" fill="#fff" stroke="#343C4B" stroke-width="4" stroke-linejoin="round"/><text x="66" y="96" text-anchor="middle" style="font:900 44px var(--font)" fill="#88619A">?</text></svg>';
+}
+function typeCards(mine){
+  return TYPE_ORDER.map(function(k){
+    var t = TYPES[k];
+    return '<div class="tcard'+(k===mine?" me":"")+'" style="--tbg:'+t.bg+'">'+(k===mine?'<span class="me-tag">나</span>':'')+triIcon(k, t.tc, t.name+" 삼각형 모양")+'<span class="code" aria-label="코드 '+codeText(k)+'">'+codeHTML(k)+'</span><b style="color:'+t.tc+'">'+t.name+'</b><span class="tg">'+t.tag+'</span></div>';
+  }).join("");
+}
+function firstEmpty(a){ var f = a.indexOf(null); return f < 0 ? TOTAL-1 : f; }
+function renderIntro(){
+  var saved = loadState(), row = $("#resumeRow");
+  var n = saved ? saved.answers.filter(function(v){return v != null;}).length : 0;
+  if(saved && n === TOTAL){
+    row.innerHTML = '이 기기에 지난 결과가 있어요. <button class="linkbtn" type="button" id="seeBtn">결과 다시 보기</button>';
+    $("#seeBtn").onclick = function(){ state = saved; showResult(); };
+  }else if(saved && n > 0){
+    row.innerHTML = '45문항 중 '+n+'개에 답했어요. <button class="linkbtn" type="button" id="resumeBtn">이어서 하기</button>';
+    $("#resumeBtn").onclick = function(){ state = saved; state.page = Math.floor(firstEmpty(state.answers)/PER); saveState(); show("quiz"); renderPage(); };
+  }else row.innerHTML = "";
+}
+
+/* ================= 대상 선택 ================= */
+$("#targetList").innerHTML = Object.keys(MODES).map(function(k,i){
+  var m = MODES[k];
+  return '<label class="tg-opt"><input type="radio" name="target" value="'+k+'"'+(i===0?" checked":"")+'><span class="tg-b"><b>'+m.label+'</b><span>'+m.desc+'</span></span></label>';
+}).join("");
+function selTarget(){ var r = document.querySelector('input[name="target"]:checked'); return r ? r.value : "partner"; }
+function updateSetup(){ var m = MODES[selTarget()]; $("#modeNote").textContent = m.note; $("#nameInput").placeholder = m.ph; }
+function openSetup(){
+  var saved = loadState();
+  if(saved){
+    if(saved.name && !$("#nameInput").value) $("#nameInput").value = saved.name;
+    var r = document.querySelector('input[name="target"][value="'+saved.target+'"]'); if(r) r.checked = true;
+  }
+  updateSetup(); show("setup");
+}
+document.querySelectorAll('input[name="target"]').forEach(function(r){ r.addEventListener("change", updateSetup); });
+$("#setupForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  state = {name:$("#nameInput").value.trim(), target:selTarget(), answers:new Array(TOTAL).fill(null), page:0};
+  saveState(); show("quiz"); renderPage();
+});
+["heroStart","bandStart","navStart"].forEach(function(id){ $("#"+id).onclick = openSetup; });
+
+/* ================= 질문 ================= */
+var LABELS = {1:"전혀 아니다",2:"아니다",3:"약간 아니다",4:"중간",5:"약간 그렇다",6:"그렇다",7:"매우 그렇다"};
+var PART_TXT = ["친밀감에 관한 문장","열정에 관한 문장","약속·책임감에 관한 문장"];
+function pageRange(p){ var s = p*PER; return [s, Math.min(TOTAL, s+PER)]; }
+function renderPage(){
+  if(typeof state.page !== "number") state.page = 0;
+  var p = state.page, rg = pageRange(p), c = ITEMS[rg[0]].c, h = '';
+  for(var i=rg[0]; i<rg[1]; i++){
+    var cur = state.answers[i];
+    h += '<div class="q'+(cur!=null?" done":"")+'" data-i="'+i+'"><p class="q-t" id="qt'+i+'">'+fill(ITEMS[i].t)+'</p><div class="q-s"><span class="lab d">아니다</span><div class="cs" role="radiogroup" aria-labelledby="qt'+i+'">';
+    for(var v=1; v<=7; v++) h += '<button type="button" class="c" data-v="'+v+'" aria-pressed="'+(cur===v)+'" aria-label="'+v+'점, '+LABELS[v]+'"><span></span></button>';
+    h += '</div><span class="lab a">그렇다</span></div></div>';
+  }
+  $("#qList").innerHTML = h;
+  $("#qHead").className = "qhead " + KEYS[c];
+  $("#qPart").textContent = PART_TXT[c];
+  $("#qHint").textContent = mode().hint;
+  $("#qPage").textContent = (p+1)+" / "+PAGES;
+  updateProgress();
+}
+function updateProgress(){
+  var n = state.answers.filter(function(v){ return v != null; }).length, pct = Math.round(n / TOTAL * 100);
+  $("#qFill").style.width = pct + "%"; $("#qPct").textContent = pct + "%";
+  $("#nextBtn").textContent = state.page === PAGES-1 ? "검사 완료" : "다음";
+}
+function answer(i, v){
+  state.answers[i] = v; saveState();
+  var blk = document.querySelector('.q[data-i="'+i+'"]');
+  blk.querySelectorAll(".c").forEach(function(b){ b.setAttribute("aria-pressed", String(+b.dataset.v === v)); });
+  blk.classList.add("done"); blk.classList.remove("miss");
+  updateProgress();
+  var rg = pageRange(state.page), next = null;
+  for(var k=i+1; k<rg[1]; k++) if(state.answers[k] == null){ next = k; break; }
+  var target = next != null ? document.querySelector('.q[data-i="'+next+'"]') : $("#nextBtn");
+  setTimeout(function(){
+    var r = target.getBoundingClientRect();
+    window.scrollTo({top: window.scrollY + r.top - window.innerHeight/2 + r.height/2, behavior: reduceMotion ? "auto" : "smooth"});
+  }, 150);
+}
+$("#qList").addEventListener("click", function(e){
+  var b = e.target.closest(".c"); if(!b) return;
+  answer(+b.closest(".q").dataset.i, +b.dataset.v);
+});
+$("#nextBtn").onclick = function(){
+  var rg = pageRange(state.page), miss = [];
+  for(var i=rg[0]; i<rg[1]; i++) if(state.answers[i] == null) miss.push(i);
+  if(miss.length){
+    miss.forEach(function(i){ document.querySelector('.q[data-i="'+i+'"]').classList.add("miss"); });
+    var r = document.querySelector('.q[data-i="'+miss[0]+'"]').getBoundingClientRect();
+    window.scrollTo({top: window.scrollY + r.top - window.innerHeight/2 + r.height/2, behavior: reduceMotion ? "auto" : "smooth"});
+    toast("아직 답하지 않은 문장이 "+miss.length+"개 있어요");
+    return;
+  }
+  if(state.page < PAGES-1){ state.page++; saveState(); renderPage(); window.scrollTo(0,0); return; }
+  var f = state.answers.indexOf(null);
+  if(f >= 0){ state.page = Math.floor(f/PER); renderPage(); window.scrollTo(0,0); toast((f+1)+"번 문장에 아직 답하지 않았어요"); return; }
+  show("done"); $("#interpBtn").focus({preventScroll:true});
+};
+$("#prevBtn").onclick = function(){
+  if(state.page > 0){ state.page--; saveState(); renderPage(); window.scrollTo(0,0); }
+  else openSetup();
+};
+document.addEventListener("keydown", function(e){
+  if(!$("#quiz").classList.contains("active") || (e.target && e.target.tagName === "INPUT")) return;
+  if(e.key >= "1" && e.key <= "7"){
+    var rg = pageRange(state.page);
+    for(var i=rg[0]; i<rg[1]; i++) if(state.answers[i] == null){ answer(i, +e.key); return; }
+  }
+});
+
+/* ================= 검사 완료 ================= */
+$("#interpBtn").onclick = function(){ showResult(); };
+$("#doneReview").onclick = function(){ state.page = 0; saveState(); show("quiz"); renderPage(); };
+
+/* ================= 삼각형 그래프 ================= */
+var S3 = Math.sqrt(3)/2, DIRS = [[0,-1],[-S3,.5],[S3,.5]], CX = 220, CY = 230, RR = 160;
+function triPts(vals){ return vals.map(function(v,i){ return [CX + DIRS[i][0]*RR*v/7, CY + DIRS[i][1]*RR*v/7]; }); }
+function ptsStr(p){ return p.map(function(q){ return q[0].toFixed(1)+","+q[1].toFixed(1); }).join(" "); }
+function chartSVG(sc){
+  var V = triPts([7,7,7]), Z = triPts([0,0,0]);
+  var s = '<svg viewBox="0 0 440 400" role="img" aria-label="친밀감 '+sc[0].toFixed(1)+'점, 열정 '+sc[1].toFixed(1)+'점, 약속·책임감 '+sc[2].toFixed(1)+'점으로 그린 사랑의 삼각형">';
+  s += '<polygon points="'+ptsStr(V)+'" fill="#F5F6F8" stroke="#C3C7D0" stroke-width="2" stroke-linejoin="round"/>';
+  s += '<polygon points="'+ptsStr(triPts([5,5,5]))+'" fill="none" stroke="#D5D8DE" stroke-width="1.5" stroke-dasharray="4 6"/>';
+  V.forEach(function(v){ s += '<line x1="'+CX+'" y1="'+CY+'" x2="'+v[0].toFixed(1)+'" y2="'+v[1].toFixed(1)+'" stroke="#D5D8DE" stroke-width="1.5"/>'; });
+  s += '<polygon class="js-poly" points="'+ptsStr(Z)+'" fill="#88619A" fill-opacity=".18" stroke="#88619A" stroke-width="3" stroke-linejoin="round"/>';
+  for(var i=0;i<3;i++) s += '<circle class="js-dot" r="9" cx="'+CX+'" cy="'+CY+'" fill="'+COMP_COL[i]+'" stroke="#fff" stroke-width="3"/>';
+  var lab = [[CX,26,"middle"],[V[1][0],378,"middle"],[V[2][0],378,"middle"]];
+  COMP.forEach(function(c,i){
+    s += '<text x="'+lab[i][0].toFixed(1)+'" y="'+lab[i][1]+'" text-anchor="middle" style="font:800 16px var(--font)" fill="'+["#2E7690","#D13E43","#A87810"][i]+'">'+c.name+' '+sc[i].toFixed(1)+'</text>';
+  });
+  return s + '</svg>';
+}
+function animateTri(root, vals){
+  var poly = root.querySelector(".js-poly"), dots = root.querySelectorAll(".js-dot"), t0 = null;
+  function draw(e){
+    var P = triPts(vals.map(function(v){ return v*e; }));
+    poly.setAttribute("points", ptsStr(P));
+    for(var i=0;i<3;i++){ dots[i].setAttribute("cx", P[i][0].toFixed(1)); dots[i].setAttribute("cy", P[i][1].toFixed(1)); }
+  }
+  if(reduceMotion){ draw(1); return; }
+  function step(now){ if(t0 === null) t0 = now; var t = Math.min(1,(now-t0)/1300); draw(1-Math.pow(1-t,3)); if(t<1) requestAnimationFrame(step); }
+  requestAnimationFrame(step);
+}
+
+/* ================= 결과 ================= */
+function compute(){
+  var sums = [0,0,0];
+  ITEMS.forEach(function(it,i){ sums[it.c] += state.answers[i]; });
+  var avg = sums.map(function(s){ return r1(s/15); });
+  var a = avg[0], b = avg[1], c = avg[2];
+  return {avg:avg, bits:avg.map(function(x){ return x >= HIGH ? "1" : "0"; }).join(""), ratio:(a*b+b*c+c*a)/147};
+}
+function sizeInfo(r){
+  var pct = Math.round(r*100);
+  if(r >= .65) return {pct:pct, label:"큰 삼각형", txt:"세 요소가 모두 넉넉해서 사랑의 크기가 커요. 이 사람에게 쏟는 마음이 크다는 뜻이에요."};
+  if(r >= .35) return {pct:pct, label:"중간 삼각형", txt:"적당한 크기의 사랑이에요. 약한 요소를 키우면 삼각형이 더 커질 수 있어요."};
+  return {pct:pct, label:"작은 삼각형", txt:"아직 사랑의 크기가 작은 편이에요. 시작 단계이거나, 마음이 잠시 멀어진 시기일 수 있어요."};
+}
+function shapeInfo(avg){
+  var mx = 0, mn = 0;
+  for(var i=1;i<3;i++){ if(avg[i] > avg[mx]) mx = i; if(avg[i] < avg[mn]) mn = i; }
+  var gap = r1(avg[mx]-avg[mn]);
+  if(gap < .8) return "세 요소가 고르게 균형 잡힌, 정삼각형에 가까운 모양이에요.";
+  var h = COMP[mx].name, l = COMP[mn].name;
+  return "<b>"+h+"</b>"+josa(h,"이")+" 가장 강하고 <b>"+l+"</b>"+josa(l,"이")+" 가장 약해서, "+h+" 쪽으로 늘어난 모양이에요. 두 요소의 차이는 "+gap.toFixed(1)+"점이에요.";
+}
+var ICON_OK = '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#14946B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+var ICON_EYE = '<svg viewBox="0 0 24 24"><path d="M12 7v6" stroke="#D98A00" stroke-width="3" stroke-linecap="round"/><circle cx="12" cy="17.5" r="1.8" fill="#D98A00"/></svg>';
+
+
+function showResult(){
+  var R = compute(), T = TYPES[R.bits], size = sizeInfo(R.ratio), M = mode(), isIdeal = state.target === "ideal";
+  var nm = dispName(), lv = R.avg.map(level), code = codeText(R.bits);
+  var weak = [0,1,2].filter(function(i){ return lv[i] !== "high"; }).sort(function(a,b){ return R.avg[a]-R.avg[b]; }).slice(0,2);
+  var idx = state.answers.map(function(v,i){ return i; });
+  var hiI = idx.slice().sort(function(a,b){ return state.answers[b]-state.answers[a] || a-b; }).slice(0,3);
+  var loI = idx.slice().sort(function(a,b){ return state.answers[a]-state.answers[b] || a-b; }).slice(0,3);
+  var flat = Math.max.apply(null, state.answers) === Math.min.apply(null, state.answers);
+  function itemLi(i){ var c = COMP[ITEMS[i].c]; return '<li class="'+c.key+'"><span class="sc">'+state.answers[i]+'</span><span>'+fill(ITEMS[i].t)+'<span class="cat">'+(i+1)+'번 문장, '+c.name+'</span></span></li>'; }
+
+  var h = '';
+  h += '<div class="rhero" style="--tbg:'+T.bg+';--tc:'+T.tc+'"><div class="wrap">';
+  h += '<p class="who">'+M.who(nm)+'</p>';
+  h += triIcon(R.bits, T.tc, T.name+" 삼각형 모양");
+  h += '<p class="ty">'+T.name+'</p><p class="code" aria-label="유형 코드 '+code+'">'+codeHTML(R.bits)+'</p><p class="en">'+T.en+'</p>';
+  h += '<p class="sm">'+T.sum+'</p>';
+  h += '<div class="codekey">'+LETTER.map(function(L,i){ return '<span><b>'+L+'</b> '+LETTER_KO[i]+'</span>'; }).join("")+'<span>대문자는 강함, 소문자는 약함</span></div>';
+  h += '</div></div>';
+
+  h += '<nav class="rnav" aria-label="결과 목차"><div class="wrap">'+
+       [["rTraits","세 요소 점수"],["rTri","나의 삼각형"],["rAbout","유형 설명"],["rTips","키워 갈 점"],["rAns","내 답변"],["rTypes","다른 유형"],["rDept",DEPT]].map(function(x){ return '<button type="button" data-go="'+x[0]+'">'+esc(x[1])+'</button>'; }).join("")+'</div></nav>';
+
+  h += '<div class="wrap narrow">';
+  h += '<section class="rsec" id="rTraits"><h2>세 요소 점수</h2><p class="sub">요소마다 15문장의 평균이에요. 1점부터 7점까지예요.</p><div class="traits">';
+  COMP.forEach(function(c,i){
+    var w = ((R.avg[i]-1)/6*100).toFixed(1);
+    h += '<div class="trait '+c.key+'"><div class="tt"><b>'+LETTER[i]+' '+c.name+'</b><span>'+R.avg[i].toFixed(1)+'점<small>'+LV_TXT[lv[i]]+'</small></span></div>'+
+         '<div class="tbar"><i data-w="'+w+'"></i><span class="dot" data-l="'+w+'"></span></div><div class="tlab"><span>약함</span><span>강함</span></div><p>'+c.lv[lv[i]]+'</p></div>';
+  });
+  h += '</div><p class="crit">평균 5점 이상은 높음(대문자), 3.5점 이상 5점 미만은 보통, 3.5점 미만은 낮음으로 판정해요.</p></section>';
+
+  h += '<section class="rsec" id="rTri"><h2>나의 사랑의 삼각형</h2><div class="tri-wrap"><div id="resFig">'+chartSVG(R.avg)+'</div><div>';
+  h += '<div class="readout"><h3>삼각형의 크기는 사랑의 강도</h3><p class="big">'+size.pct+'%<small>'+size.label+'</small></p><div class="meter"><i data-w="'+size.pct+'"></i></div><p>'+size.txt+'</p></div>';
+  h += '<div class="readout"><h3>삼각형의 모양은 사랑의 유형</h3><p class="big">'+T.name+'</p><p>'+shapeInfo(R.avg)+'</p></div>';
+  h += '</div></div></section>';
+
+  h += '<section class="rsec" id="rAbout"><h2>'+T.name+josa(T.name,"은")+' 어떤 사랑일까요?</h2><p class="desc">'+T.desc+'</p>';
+  if(isIdeal) h += '<p class="desc">이 결과는 실제 관계가 아니라 내가 사랑에 기대하는 모습이에요. 내가 바라는 사랑이 '+T.name+'에 가깝다는 뜻이에요.</p>';
+  else if(state.target === "crush") h += '<p class="desc">아직 시작되지 않은 사랑이라면, 지금 내 마음이 이런 모양에 가깝다는 뜻이에요.</p>';
+  h += '<div class="gw"><div class="good"><h3>강점</h3><p>'+T.good+'</p></div><div class="watch"><h3>살펴보면 좋은 점</h3><p>'+T.watch+'</p></div></div></section>';
+
+  h += '<section class="rsec" id="rTips"><h2>'+M.tipTitle+'</h2><div class="tips'+(!isIdeal && weak.length===2?" two":"")+'">';
+  if(isIdeal) h += '<div class="tip"><h3>내가 바라는 사랑 이해하기</h3><ul>'+IDEAL_TIPS.map(function(t){ return '<li>'+t+'</li>'; }).join("")+'</ul></div>';
+  else if(weak.length) weak.forEach(function(i){ var c = COMP[i]; h += '<div class="tip '+c.key+'"><h3>'+c.name+' 키우기<small>지금 '+R.avg[i].toFixed(1)+'점</small></h3><ul>'+c.tips.map(function(t){ return '<li>'+t+'</li>'; }).join("")+'</ul></div>'; });
+  else h += '<div class="tip"><h3>지금의 사랑을 지켜 가기</h3><ul>'+KEEP_TIPS.map(function(t){ return '<li>'+t+'</li>'; }).join("")+'</ul></div>';
+  h += '</div><p class="insight">'+(isIdeal
+     ? '스턴버그는 실제 관계의 삼각형과 마음속에 그리는 이상적인 삼각형을 나눠서 봤어요. 두 삼각형이 비슷할수록 관계에 더 만족하는 경향이 있다고 해요.'
+     : '사랑의 삼각형은 시간이 지나며 변해요. 스턴버그에 따르면 열정은 빠르게 커졌다가 줄어드는 반면, 친밀감과 약속은 천천히 자라요. 두 사람의 삼각형 모양이 비슷할수록 관계에 더 만족하는 경향도 있어요.')+'</p></section>';
+
+  if(!flat){
+    h += '<section class="rsec" id="rAns"><h2>내 답변 돌아보기</h2><div class="cols"><div><h3>가장 그렇다고 답한 문장</h3><ul class="items">'+hiI.map(itemLi).join("")+'</ul></div>';
+    h += '<div><h3>가장 아니라고 답한 문장</h3><ul class="items">'+loI.map(itemLi).join("")+'</ul></div></div></section>';
+  }
+  h += '</div>';
+
+  h += '<div class="wrap"><section class="rsec" id="rTypes"><h2>다른 사랑 유형도 볼까요?</h2><p class="sub">‘나’ 표시가 있는 카드가 내 유형이에요.</p><div class="types">'+typeCards(R.bits)+'</div></section></div>';
+
+  h += '<div class="wrap narrow"><div class="booth" id="rDept"><h2>'+esc(DEPT)+'에서는 이런 걸 배워요</h2><p class="sub">방금 한 검사 뒤에는 이런 공부가 숨어 있어요. 궁금한 점은 부스에 있는 학생들에게 물어보세요.</p><ul class="courses">'+COURSES.map(function(c){ return '<li><b>'+c[0]+'</b><span>'+c[1]+'</span></li>'; }).join("")+'</ul></div>';
+  h += '<div class="refs"><p>Sternberg, R. J. (1986). A triangular theory of love. <i>Psychological Review, 93</i>(2), 119–135.</p><p>Sternberg, R. J. (1997). Construct validation of a triangular love scale. <i>European Journal of Social Psychology, 27</i>(3), 313–335.</p></div>';
+  h += '<div class="ractions"><button class="btn green" id="copyBtn" type="button">결과 복사하기</button><button class="btn line" id="printBtn" type="button">PDF로 저장</button><button class="btn line" id="nextPerson" type="button">다음 사람을 위해 처음으로</button></div>';
+  h += '<p class="redit">답을 바꾸고 싶다면 <button class="linkbtn" type="button" id="reviewBtn">답변 수정하기</button></p></div>';
+
+  $("#result").innerHTML = h;
+  show("result");
+  animateTri($("#resFig"), R.avg);
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){
+    document.querySelectorAll("#result [data-w]").forEach(function(el){ el.style.width = el.dataset.w + "%"; });
+    document.querySelectorAll("#result [data-l]").forEach(function(el){ el.style.left = el.dataset.l + "%"; });
+  }); });
+  document.querySelectorAll("#result .rnav [data-go]").forEach(function(b){
+    b.onclick = function(){ var t = document.getElementById(b.dataset.go); if(t) window.scrollTo({top: t.getBoundingClientRect().top + window.scrollY - 124, behavior: reduceMotion ? "auto" : "smooth"}); };
+  });
+
+  $("#copyBtn").onclick = function(){
+    copyText("[사랑의 삼각형 검사] "+DEPT+" "+BOOTH+"\n나의 사랑 유형: "+T.name+" ("+code+")\n"+T.sum+"\n친밀감 "+R.avg[0].toFixed(1)+" / 열정 "+R.avg[1].toFixed(1)+" / 약속·책임감 "+R.avg[2].toFixed(1)+" (7점 만점)"+(location.protocol.indexOf("http")===0?"\n\n나도 해 보기: "+location.href.split("#")[0]:""));
+  };
+  $("#printBtn").onclick = function(){ window.print(); };
+  $("#nextPerson").onclick = function(){
+    state = {name:"", target:"partner", answers:new Array(TOTAL).fill(null), page:0};
+    try{ localStorage.removeItem(STORE); }catch(e){}
+    $("#nameInput").value = "";
+    var r = document.querySelector('input[name="target"][value="partner"]'); if(r) r.checked = true;
+    show("intro"); renderIntro();
+  };
+  $("#reviewBtn").onclick = function(){ state.page = 0; show("quiz"); renderPage(); };
+}
+function copyText(txt){
+  function fallback(){
+    var ta = document.createElement("textarea"); ta.value = txt; ta.setAttribute("readonly",""); ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand("copy"); toast("결과를 복사했어요"); }catch(e){ toast("복사하지 못했어요. 직접 선택해 복사해 주세요"); }
+    document.body.removeChild(ta);
+  }
+  if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function(){ toast("결과를 복사했어요"); }, fallback);
+  else fallback();
+}
+
+
+
+/* ================= 시작 ================= */
+$("#homeBtn").onclick = function(){ show("intro"); renderIntro(); };
+document.querySelectorAll(".nav [data-go]").forEach(function(b){
+  b.onclick = function(){
+    if(!$("#intro").classList.contains("active")){ show("intro"); renderIntro(); }
+    var el = document.getElementById(b.dataset.go);
+    setTimeout(function(){ window.scrollTo({top: el.getBoundingClientRect().top + window.scrollY - 64, behavior: reduceMotion ? "auto" : "smooth"}); }, 30);
+  };
+});
+renderIntroArt();
+renderIntro();
+})();
+</script>
+</body>
+</html>
