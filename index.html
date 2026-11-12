@@ -27,7 +27,7 @@
   <div class="hero">
     <div class="wrap">
       <h1>내 사랑은<br>어떤 유형일까?</h1>
-      <p class="lead">45개 문장에 답하면, 스턴버그의 사랑의 삼각형 이론으로 8가지 사랑 유형 중 내 사랑과 가장 닮은 유형을 알려 드려요.</p>
+      <p class="lead">45개 문장에 답하면 스턴버그의 사랑의 삼각형 이론으로 세 요소 점수와 내 사랑의 삼각형을 그려 드려요. 8가지 유형 중 어디에 가까운지는 해석자와 함께 풀어 봐요.</p>
       <button class="btn green" type="button" id="heroStart">검사 시작하기</button>
       <p class="resume" id="resumeRow"></p>
       <div class="hero-art" id="heroArt"></div>
@@ -40,7 +40,7 @@
       <div class="steps">
         <div class="step int"><span class="ic">1</span><h3>한 사람 떠올리기</h3><p>사귀는 사람, 좋아하는 사람, 상상 속 이상형 중 한 명을 정해요.</p></div>
         <div class="step pas"><span class="ic">2</span><h3>45문항 답하기</h3><p>각 문장이 내 마음과 얼마나 같은지 골라요. 5분이면 충분해요.</p></div>
-        <div class="step com"><span class="ic">3</span><h3>유형과 해석 보기</h3><p>내 사랑의 삼각형, 유형 코드, 강점과 키워 갈 점을 확인해요.</p></div>
+        <div class="step com"><span class="ic">3</span><h3>해석자와 함께 보기</h3><p>점수와 삼각형이 나오면 해석자에게 보여 주세요. 어떤 사랑인지 함께 이야기해요.</p></div>
       </div>
     </div>
   </section>
@@ -94,13 +94,13 @@
   </div>
 </section>
 
-<!-- 45개 다 풀면 여기로 옴. 해석 받기 눌러야 결과 보여줌 (바로 보여주면 김빠져서 ㅋㅋ) -->
+<!-- 45개 다 풀면 여기로 옴. 결과 보기 눌러야 점수 보여줌. 유형 해석은 해석자가 직접 해 줌 -->
 <section id="done" class="screen">
   <div class="fin">
     <div id="doneArt" aria-hidden="true"></div>
     <h1>45문항에 모두 답했어요</h1>
-    <p>해석 받기를 누르면 내 사랑의 유형과 코드, 세 요소 점수와 해석을 보여 드려요.</p>
-    <button class="btn green" type="button" id="interpBtn">해석 받기</button>
+    <p>결과 보기를 누르면 세 요소 점수와 내 사랑의 삼각형이 나와요. 그 화면을 해석자에게 보여 주면 어떤 사랑인지 함께 풀어 드려요.</p>
+    <button class="btn green" type="button" id="interpBtn">결과 보기</button>
     <button class="linkbtn" type="button" id="doneReview">답변 다시 확인하기</button>
   </div>
 </section>
