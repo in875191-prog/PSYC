@@ -10,8 +10,8 @@ var BOOTH = "체험 부스";
 // 해석자에게 메일 보내는 주소. 구글 Apps Script 웹 앱 URL을 넣으면 됨 (만드는 법은 README 참고)
 // 비워 두면 메일은 안 보내고, 해석자 모드에서 PDF 내려받기만 됨
 // 받는 사람 메일 주소는 여기 말고 Apps Script(Code.gs) 안에 적음. 그래야 아무 데나 못 보냄
-var MAIL_URL = "https://script.google.com/macros/s/AKfycbx37YbACbqL6oaXHgskP9gWhvWXXVAISc0x8VN6yBSCaXtgO6JOfka3R2CxDyXf3y3C/exec";
-// PDF 만들어 주는 라이브러리. 필요할 때만 불러옴 (처음부터 불러오면 폰에서 느려짐)
+var MAIL_URL = "https://script.google.com/macros/s/AKfycbw759aoGdrS9pOapzFUiV7DR_yKIW4TbNEhRu7Yk4XWkDELz_nMRzgl0KwCPiXHXZ7r/exec";
+// PDF 만들어 주는 라이브러리. 해석 가이드 페이지(report.html)에서 PDF 저장 누를 때만 불러옴
 var PDF_LIB = "https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js";
 
 // 문항 데이터 45개
@@ -269,7 +269,11 @@ return s + '</svg>';
 
 // 여기부터 자주 쓰는 함수 모음
 // $는 제이쿼리 흉내. 쓰기 편해서 만듦
-function $(s){ return document.querySelector(s); }
+// 없는 요소면 빈 껍데기를 돌려줌. report.html에는 검사 화면이 없어서, 이렇게 해야 같은 js를 써도 에러가 안 남
+var NOEL = document.createElement("div");
+function $(s){ return document.querySelector(s) || NOEL; }
+// 지금 열린 게 해석 가이드 페이지인지
+var REPORT = !!document.getElementById("reportView");
 // 이름에 꺾쇠 같은 거 넣어도 화면 안 깨지게 막아주는 거. 지우면 안 됨
 function esc(s){ return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];}); }
 // 한글 조사 자동으로 붙이는 용도. 받침 있으면 을, 없으면 를 이런 식
@@ -320,7 +324,7 @@ try{ var s = JSON.parse(localStorage.getItem(STORE));
   if(s && Array.isArray(s.answers) && s.answers.length === TOTAL){ if(!MODES[s.target]) s.target = "partner"; s.page = s.page || 0; return s; } }catch(e){}
 return null;
 }
-function saveState(){ try{ localStorage.setItem(STORE, JSON.stringify(state)); }catch(e){} }
+function saveState(){ if(REPORT) return; try{ localStorage.setItem(STORE, JSON.stringify(state)); }catch(e){} }
 // 지금 고른 대상 정보 가져오기
 function mode(){ return MODES[state.target] || MODES.partner; }
 // 접수번호. 해석자가 메일로 받은 PDF랑 눈앞의 응답자를 맞춰 보는 용도
@@ -696,7 +700,7 @@ return a+" 점수로 보면 ‘"+T.name+"’에 가까운 모양이에요. 어�
 }
 function buildReport(){
 var R = compute(), T = TYPES[R.bits], size = sizeInfo(R.ratio), M = mode(), lv = R.avg.map(level), code = codeText(R.bits);
-var d = new Date(), dt = d.getFullYear()+"."+pad(d.getMonth()+1)+"."+pad(d.getDate())+" "+pad(d.getHours())+":"+pad(d.getMinutes());
+var d = state.at ? new Date(state.at) : new Date(), dt = d.getFullYear()+"."+pad(d.getMonth()+1)+"."+pad(d.getDate())+" "+pad(d.getHours())+":"+pad(d.getMinutes());
 var who = M.label + (state.target !== "ideal" && (state.name||"").trim() ? " · "+esc(state.name.trim()) : "");
 var idx = state.answers.map(function(v,i){ return i; });
 var hiI = idx.slice().sort(function(a,b){ return state.answers[b]-state.answers[a] || a-b; }).slice(0,3);
@@ -822,6 +826,34 @@ return loadLib().then(function(){
 });
 }
 function pdfName(){ return "사랑의삼각형_"+rid()+".pdf"; }
+// 해석 가이드 링크. 결과는 주소 # 뒤에 다 들어 있음 (# 뒤는 서버로 안 가서 깃허브에도 안 남음)
+// a: 45문항 답, t: 떠올린 사람 종류, n: 이름, r: 접수번호, d: 검사한 시각
+function reportLink(){
+var q = "r="+rid()+"&t="+state.target+"&a="+state.answers.join("")+"&d="+Date.now()+((state.name||"").trim() ? "&n="+encodeURIComponent(state.name.trim()) : "");
+return new URL("report.html", location.href).href.split("#")[0] + "#" + q;
+}
+// 해석 가이드 페이지 그리기 (report.html)
+function renderReportPage(){
+var box = document.getElementById("reportView"), p = {};
+location.hash.replace(/^#/, "").split("&").forEach(function(kv){ var i = kv.indexOf("="); if(i > 0) p[kv.slice(0,i)] = decodeURIComponent(kv.slice(i+1)); });
+if(!/^[1-7]{45}$/.test(p.a || "") || !MODES[p.t] || !/^[0-9A-Z]{4}$/.test(p.r || "")){
+  box.innerHTML = '<div class="rp-bad"><h1>링크가 올바르지 않아요</h1><p>메일에 있는 링크를 처음부터 끝까지 다 복사했는지 확인해 주세요.</p></div>';
+  return;
+}
+state = {name:(p.n || "").slice(0,12), target:p.t, answers:p.a.split("").map(Number), page:0, rid:p.r, at:+p.d || 0};
+document.title = "해석 가이드 " + p.r + " | 사랑의 삼각형";
+box.innerHTML = buildReport();
+$("#rpSave").onclick = downloadReport;
+}
+// PDF 저장 버튼
+var pdfBusy = false;
+function downloadReport(){
+if(pdfBusy) return; pdfBusy = true;
+var b = $("#rpSave"), t = b.textContent; b.textContent = "PDF 만드는 중…"; b.disabled = true;
+makePdf().then(function(pdf){ pdf.save(pdfName()); }).catch(function(e){ console.error(e); toast("PDF를 만들지 못했어요. 인터넷 연결을 확인해 주세요"); }).then(function(){ pdfBusy = false; b.textContent = t; b.disabled = false; });
+}
+window.addEventListener("hashchange", function(){ if(REPORT) renderReportPage(); });
+
 // 해석자에게 메일 보내기. 화면에는 아무것도 안 띄우고 뒤에서 조용히 보냄
 // 같은 답변으로는 한 번만 보냄. 실패하면 몇 초 뒤에 알아서 다시 시도함 (최대 3번)
 var sendBusy = false;
@@ -832,15 +864,15 @@ if(!MAIL_URL || sendBusy || state.sent === reportSig()) return;
 sendBusy = true;
 var R = compute(), T = TYPES[R.bits], code = codeText(R.bits), sig = reportSig();
 var sc = "친밀감 "+R.avg[0].toFixed(1)+" · 열정 "+R.avg[1].toFixed(1)+" · 약속·책임감 "+R.avg[2].toFixed(1);
-makePdf().then(function(pdf){
-  var lines = ["접수번호: "+rid(), "떠올린 사람: "+mode().label, "세 요소: "+sc+" (7점 만점)", "점수로 계산한 유형: "+T.name+" ("+code+")", "", "첨부한 PDF에 해석 순서와 설명이 모두 들어 있어요. 응답자에게 접수번호를 확인한 뒤 해석해 주세요."];
+var link = reportLink();
+Promise.resolve().then(function(){
+  var lines = ["접수번호: "+rid(), "떠올린 사람: "+mode().label, "세 요소: "+sc+" (7점 만점)", "점수로 계산한 유형: "+T.name+" ("+code+")", "", "해석 가이드 열기: "+link, "", "링크를 열면 해석 순서와 설명이 모두 나와요. 응답자에게 접수번호를 확인한 뒤 해석해 주세요."];
   var body = {
     rid: rid(),
     subject: "[사랑의 삼각형] 접수 "+rid()+" · "+T.name+" ("+code+")",
     text: lines.join("\n"),
-    html: '<div style="font-family:sans-serif;font-size:15px;line-height:1.7"><p style="font-size:22px;font-weight:800;margin:0 0 8px">접수번호 '+esc(rid())+'</p><p style="margin:0">떠올린 사람: '+esc(mode().label)+'<br>세 요소: '+esc(sc)+' <span style="color:#999">(7점 만점)</span><br>점수로 계산한 유형: <b>'+esc(T.name)+' ('+code+')</b></p><p style="color:#666">첨부한 PDF에 해석 순서와 설명이 모두 들어 있어요. 응답자에게 접수번호를 확인한 뒤 해석해 주세요.</p></div>',
-    filename: pdfName(),
-    pdf: pdf.output("datauristring").split(",")[1]
+    html: '<div style="font-family:sans-serif;font-size:15px;line-height:1.7"><p style="font-size:22px;font-weight:800;margin:0 0 8px">접수번호 '+esc(rid())+'</p><p style="margin:0">떠올린 사람: '+esc(mode().label)+'<br>세 요소: '+esc(sc)+' <span style="color:#999">(7점 만점)</span><br>점수로 계산한 유형: <b>'+esc(T.name)+' ('+code+')</b></p><p style="margin:20px 0"><a href="'+esc(link)+'" style="display:inline-block;background:#88619A;color:#fff;text-decoration:none;font-weight:700;padding:12px 24px;border-radius:999px">해석 가이드 열기</a></p><p style="color:#666;font-size:13px">링크를 열면 해석 순서와 설명이 모두 나오고, PDF로도 저장할 수 있어요. 응답자에게 접수번호를 확인한 뒤 해석해 주세요.</p></div>',
+    link: link
   };
   // text/plain으로 보내야 브라우저가 사전 확인(CORS preflight)을 안 해서 Apps Script로 바로 감
   return fetch(MAIL_URL, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(body)});
@@ -863,7 +895,7 @@ b.onclick = function(){
   setTimeout(function(){ window.scrollTo({top: el.getBoundingClientRect().top + window.scrollY - 64, behavior: reduceMotion ? "auto" : "smooth"}); }, 30);
 };
 });
-// 처음 열면 메인 그려주고 시작
-renderIntroArt();
-renderIntro();
+// 처음 열면 메인 그려주고 시작. 해석 가이드 페이지면 가이드를 그림
+if(REPORT) renderReportPage();
+else { renderIntroArt(); renderIntro(); }
 })();
