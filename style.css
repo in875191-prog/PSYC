@@ -113,7 +113,6 @@ body[data-screen="quiz"] footer{display:none}
 .field input:focus{border-color:var(--dis)}
 .field input::placeholder{color:var(--mute)}
 .help{font-size:13px;color:var(--mute);margin-top:8px}
-.note{max-width:480px;margin:20px auto 0;text-align:left;padding:14px 16px;border-radius:10px;background:var(--soft);font-size:14.5px;line-height:1.6}
 .note:empty{display:none}
 .setup .btn{margin-top:32px;min-width:240px}
 
@@ -259,37 +258,10 @@ body[data-screen="quiz"] footer{display:none}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
-/* 해석자 모드. body에 interp-mode 붙으면 해석자용 참고 자료가 보이고, 아니면 응답자 화면 */
-body:not(.interp-mode) .interp-only{display:none!important}
-body.interp-mode .taker-only{display:none!important}
-.rsec.interp-only > h2::before{content:"해석자 참고";display:inline-block;vertical-align:middle;margin:-4px 10px 0 0;font-size:12px;font-weight:800;background:var(--ink);color:#fff;border-radius:999px;padding:3px 10px;letter-spacing:0}
-.rnav button.exit{background:var(--ink);color:#fff;margin-left:auto}
-.interp-banner{background:var(--ink);color:#fff;border-radius:12px;padding:16px 20px;margin-top:32px;font-size:15px;font-weight:600}
-.interp-banner b{color:#FFC9DA}
-.note{display:flex;flex-direction:column;gap:14px;margin-top:24px}
-.nfield{background:var(--soft);border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:8px}
-.nfield label,.nfield b{font-weight:800}
-.nfield .hint{font-size:13.5px;color:var(--mute);font-weight:500}
-.nfield textarea,.nfield input{width:100%;border:2px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);font:inherit;font-size:16px;padding:12px 16px;outline:none}
-.nfield textarea{min-height:110px;resize:vertical;line-height:1.6}
-.nfield textarea:focus,.nfield input:focus{border-color:var(--dis)}
-.nfield p{white-space:pre-wrap;font-size:16px}
-.sugg{display:flex;flex-wrap:wrap;gap:8px}
-.sugg button{border:2px solid var(--line);background:#fff;border-radius:999px;padding:6px 14px;font-size:14px;font-weight:600;text-align:left}
-@media (hover:hover){.sugg button:hover{border-color:var(--dis);color:var(--dis)}}
-.note-empty{background:var(--soft);border-radius:12px;padding:28px 22px;text-align:center;color:var(--sub);font-weight:600}
-.note-by{font-size:14px;color:var(--sub);font-weight:700}
 
 /* 접수번호랑 메일 전송 상태 */
 .rid{display:inline-block;margin-top:22px;background:#fff;border-radius:999px;padding:8px 22px;font-size:15px;font-weight:700;color:var(--sub);box-shadow:0 0 0 2px rgba(52,60,75,.08)}
 .rid b{font-size:26px;font-weight:900;letter-spacing:.14em;color:var(--ink);margin-left:6px;vertical-align:-2px}
-.send{margin-top:12px;font-size:14.5px;font-weight:700;color:var(--sub)}
-.send.sent{color:var(--agree-d)}
-.send.sent::before{content:"✓ "}
-.send.fail{color:var(--pas-d)}
-.send .linkbtn{margin-left:4px;font-size:14.5px}
-.send.sending::before{content:"";display:inline-block;width:12px;height:12px;margin-right:8px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;vertical-align:-1px;animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
 
 /* 시간에 따른 변화 그래프랑 설명 카드 */
 .tchart{background:#fff;border-radius:12px;padding:18px 12px 6px;margin-top:28px}
@@ -392,7 +364,7 @@ body.interp-mode .taker-only{display:none!important}
 .rp-refs p{padding-left:2em;text-indent:-2em}
 
 @media print{
-.hdr,.rnav,footer,.toast,.ractions,.redit,#intro,#setup,#quiz,#done,.rp-host,.send{display:none!important}
+.hdr,.rnav,footer,.toast,.ractions,.redit,#intro,#setup,#quiz,#done,.rp-host{display:none!important}
 .rhero,.tbar,.gw > div{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .rsec{break-inside:avoid}
 }

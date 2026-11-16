@@ -10,7 +10,7 @@ var BOOTH = "체험 부스";
 // 해석자에게 메일 보내는 주소. 구글 Apps Script 웹 앱 URL을 넣으면 됨 (만드는 법은 README 참고)
 // 비워 두면 메일은 안 보내고, 해석자 모드에서 PDF 내려받기만 됨
 // 받는 사람 메일 주소는 여기 말고 Apps Script(Code.gs) 안에 적음. 그래야 아무 데나 못 보냄
-var MAIL_URL = "https://script.google.com/macros/s/AKfycbyH45zoqyn5ErscqtD4PP8doEgmQ0EgyTE0aIcnkHGXE17kT1r5RisSgqrpCu-Kw3a7/exec";
+var MAIL_URL = "https://script.google.com/macros/s/AKfycbw759aoGdrS9pOapzFUiV7DR_yKIW4TbNEhRu7Yk4XWkDELz_nMRzgl0KwCPiXHXZ7r/exec";
 // PDF 만들어 주는 라이브러리. 필요할 때만 불러옴 (처음부터 불러오면 폰에서 느려짐)
 var PDF_LIB = "https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js";
 
@@ -299,7 +299,6 @@ function level(v){ return v >= HIGH ? "high" : (v >= MID ? "mid" : "low"); }
 var LV_TXT = {high:"높음", mid:"보통", low:"낮음"};
 // 화면 전환. 메인, 대상선택, 문항, 완료, 결과 중에 하나만 보이게 함
 function show(id){
-if(id !== "result") document.body.classList.remove("interp-mode");
 ["intro","setup","quiz","done","result"].forEach(function(s){ $("#"+s).classList.toggle("active", s === id); });
 document.body.dataset.screen = id;
 window.scrollTo(0, 0);
@@ -509,7 +508,7 @@ if(e.key >= "1" && e.key <= "7"){
 
 // 완료 화면 버튼들. 해석 받기 눌러야 드디어 결과 공개
 // 결과 보기 누르는 순간 해석 가이드 PDF를 해석자 메일로 보냄
-$("#interpBtn").onclick = function(){ showResult(); sendReport(false); };
+$("#interpBtn").onclick = function(){ showResult(); sendReport(); };
 $("#doneReview").onclick = function(){ state.page = 0; saveState(); show("quiz"); renderPage(); };
 
 // 여기부터 결과 삼각형 그래프
@@ -576,13 +575,11 @@ return "<b>"+h+"</b>"+josa(h,"이")+" 가장 강하고 <b>"+l+"</b>"+josa(l,"이
 }
 
 
-// 결과 화면 통째로 그리는 함수. 길어서 미안함 ㅋㅋ
-// 순서는 유형 이름, 세 요소 점수, 삼각형, 유형 설명, 팁, 내 답변, 다른 유형
+// 결과 화면 통째로 그리는 함수
+// 응답자에게는 점수랑 삼각형만 보여줌. 유형 해석은 해석자가 메일로 받은 PDF 보고 직접 해 줌
 function showResult(){
-var R = compute(), T = TYPES[R.bits], size = sizeInfo(R.ratio), M = mode(), isIdeal = state.target === "ideal";
-var nm = dispName(), lv = R.avg.map(level), code = codeText(R.bits);
-// 높음 아닌 요소 중에 제일 낮은 거 두 개 골라서 키우는 팁 보여줌
-var weak = [0,1,2].filter(function(i){ return lv[i] !== "high"; }).sort(function(a,b){ return R.avg[a]-R.avg[b]; }).slice(0,2);
+var R = compute(), M = mode();
+var nm = dispName();
 var idx = state.answers.map(function(v,i){ return i; });
 // 제일 그렇다고 답한 문장 세 개, 제일 아니라고 한 문장 세 개 뽑기
 var hiI = idx.slice().sort(function(a,b){ return state.answers[b]-state.answers[a] || a-b; }).slice(0,3);
@@ -592,66 +589,32 @@ var flat = Math.max.apply(null, state.answers) === Math.min.apply(null, state.an
 function itemLi(i){ var c = COMP[ITEMS[i].c]; return '<li class="'+c.key+'"><span class="sc">'+state.answers[i]+'</span><span>'+fill(ITEMS[i].t)+'<span class="cat">'+(i+1)+'번 문장, '+c.name+'</span></span></li>'; }
 
 var h = '';
-// 맨 위 결과 헤더. 배경색은 유형마다 다름
-// 응답자 화면 헤더. 유형은 안 보여주고 해석자한테 보여 달라고만 함
-h += '<div class="rhero taker-only" style="--tbg:#F4EEF7;--tc:var(--ink)"><div class="wrap">';
+// 맨 위 헤더. 유형은 안 보여주고 접수번호만 크게
+h += '<div class="rhero" style="--tbg:#F4EEF7;--tc:var(--ink)"><div class="wrap">';
 h += '<p class="who">'+M.who(nm)+'</p>';
 h += '<svg viewBox="0 0 132 122" aria-hidden="true"><polygon points="66,8 8,114 124,114" fill="#fff" stroke="#343C4B" stroke-width="4" stroke-linejoin="round"/><text x="66" y="96" text-anchor="middle" style="font:900 44px var(--font)" fill="#88619A">?</text></svg>';
 h += '<p class="ty" style="font-size:clamp(32px,9vw,52px)">결과가 나왔어요</p>';
 h += '<p class="sm">해석자에게 <b>접수번호</b>를 알려 주세요. 어떤 사랑 유형인지는 해석자와 이야기하며 함께 알아봐요.</p>';
-h += ridHTML();
-h += '</div></div>';
-// 해석자 화면 헤더. 원래 있던 유형 결과
-h += '<div class="rhero interp-only" style="--tbg:'+T.bg+';--tc:'+T.tc+'"><div class="wrap">';
-h += '<p class="who">'+M.who(nm)+'</p>';
-h += triIcon(R.bits, T.tc, T.name+" 삼각형 모양");
-h += '<p class="ty">'+T.name+'</p><p class="code" aria-label="유형 코드 '+code+'">'+codeHTML(R.bits)+'</p><p class="en">'+T.en+'</p>';
-h += '<p class="sm">'+T.sum+'</p>';
-h += ridHTML();
-h += '<div class="codekey">'+LETTER.map(function(L,i){ return '<span><b>'+L+'</b> '+LETTER_KO[i]+'</span>'; }).join("")+'<span>대문자는 강함, 소문자는 약함</span></div>';
+h += '<p class="rid">접수번호 <b>'+esc(rid())+'</b></p>';
 h += '</div></div>';
 
 h += '<nav class="rnav" aria-label="결과 목차"><div class="wrap">'+
-     [["rTraits","세 요소 점수"],["rTri","나의 삼각형"],["rAbout","유형 설명",1],["rTips","키워 갈 점",1],["rTime","시간에 따른 변화",1],["rAns","내 답변"],["rTypes","사랑 유형"],["rNote","해석자의 해석"]].map(function(x){ return '<button type="button"'+(x[2]?' class="interp-only"':'')+' data-go="'+x[0]+'">'+esc(x[1])+'</button>'; }).join("")+
-     '<button type="button" class="interp-only exit" id="exitInterp">응답자 화면으로</button></div></nav>';
+     [["rTraits","세 요소 점수"],["rTri","나의 삼각형"],["rAns","내 답변"],["rTypes","사랑 유형"]].map(function(x){ return '<button type="button" data-go="'+x[0]+'">'+esc(x[1])+'</button>'; }).join("")+'</div></nav>';
 
 h += '<div class="wrap narrow">';
-h += '<div class="interp-banner interp-only" role="note"><b>해석자 모드</b> · ‘해석자 참고’가 붙은 부분과 유형 이름, 점수 판정은 응답자 화면에 안 보여요. 그대로 읽어 주기보다 근거로 삼아서, 맨 아래 <b>해석자의 해석</b>에 직접 적어 주세요.</div>';
 // 세 요소 점수 막대
 h += '<section class="rsec" id="rTraits"><h2>세 요소 점수</h2><p class="sub">요소마다 15문장의 평균이에요. 1점부터 7점까지예요.</p><div class="traits">';
 COMP.forEach(function(c,i){
   var w = ((R.avg[i]-1)/6*100).toFixed(1);
-  h += '<div class="trait '+c.key+'"><div class="tt"><b>'+LETTER[i]+' '+c.name+'</b><span>'+R.avg[i].toFixed(1)+'점<small class="interp-only">'+LV_TXT[lv[i]]+'</small></span></div>'+
-       '<div class="tbar"><i data-w="'+w+'"></i><span class="dot" data-l="'+w+'"></span></div><div class="tlab"><span>약함</span><span>강함</span></div><p class="taker-only">'+c.about+'</p><p class="interp-only">'+c.lv[lv[i]]+'</p></div>';
+  h += '<div class="trait '+c.key+'"><div class="tt"><b>'+LETTER[i]+' '+c.name+'</b><span>'+R.avg[i].toFixed(1)+'점</span></div>'+
+       '<div class="tbar"><i data-w="'+w+'"></i><span class="dot" data-l="'+w+'"></span></div><div class="tlab"><span>약함</span><span>강함</span></div><p>'+c.about+'</p></div>';
 });
-h += '</div><p class="crit interp-only">평균 5점 이상은 높음(대문자), 3.5점 이상 5점 미만은 보통, 3.5점 미만은 낮음으로 판정해요.</p></section>';
+h += '</div></section>';
 
-// 삼각형 그래프랑 크기, 모양 설명
+// 삼각형 그래프
 h += '<section class="rsec" id="rTri"><h2>나의 사랑의 삼각형</h2><div class="tri-wrap"><div id="resFig">'+chartSVG(R.avg)+'</div><div>';
-h += '<div class="readout taker-only"><h3>삼각형 읽는 법</h3><p>꼭짓점 쪽으로 멀리 뻗을수록 그 요소가 강하다는 뜻이에요. 점선은 5점 기준선이에요. 크기와 모양이 무엇을 뜻하는지는 해석자와 함께 봐요.</p></div>';
-h += '<div class="interp-only"><div class="readout"><h3>삼각형의 크기는 사랑의 강도</h3><p class="big">'+size.pct+'%<small>'+size.label+'</small></p><div class="meter"><i data-w="'+size.pct+'"></i></div><p>'+size.txt+'</p></div>';
-h += '<div class="readout"><h3>삼각형의 모양은 사랑의 유형</h3><p class="big">'+T.name+'</p><p>'+shapeInfo(R.avg)+'</p></div></div>';
+h += '<div class="readout"><h3>삼각형 읽는 법</h3><p>꼭짓점 쪽으로 멀리 뻗을수록 그 요소가 강하다는 뜻이에요. 점선은 5점 기준선이에요. 크기와 모양이 무엇을 뜻하는지는 해석자와 함께 봐요.</p></div>';
 h += '</div></div></section>';
-
-// 유형 설명, 강점, 살펴볼 점
-h += '<section class="rsec interp-only" id="rAbout"><h2>'+T.name+josa(T.name,"은")+' 어떤 사랑일까요?</h2><p class="desc">'+T.desc+'</p>';
-if(isIdeal) h += '<p class="desc">이 결과는 실제 관계가 아니라 내가 사랑에 기대하는 모습이에요. 내가 바라는 사랑이 '+T.name+'에 가깝다는 뜻이에요.</p>';
-else if(state.target === "crush") h += '<p class="desc">아직 시작되지 않은 사랑이라면, 지금 내 마음이 이런 모양에 가깝다는 뜻이에요.</p>';
-h += '<div class="gw"><div class="good"><h3>강점</h3><p>'+T.good+'</p></div><div class="watch"><h3>살펴보면 좋은 점</h3><p>'+T.watch+'</p></div></div></section>';
-
-// 키우는 팁. 이상형 골랐으면 이상형용 팁이 나옴
-h += '<section class="rsec interp-only" id="rTips"><h2>'+M.tipTitle+'</h2><div class="tips'+(!isIdeal && weak.length===2?" two":"")+'">';
-if(isIdeal) h += '<div class="tip"><h3>내가 바라는 사랑 이해하기</h3><ul>'+IDEAL_TIPS.map(function(t){ return '<li>'+t+'</li>'; }).join("")+'</ul></div>';
-else if(weak.length) weak.forEach(function(i){ var c = COMP[i]; h += '<div class="tip '+c.key+'"><h3>'+c.name+' 키우기<small>지금 '+R.avg[i].toFixed(1)+'점</small></h3><ul>'+c.tips.map(function(t){ return '<li>'+t+'</li>'; }).join("")+'</ul></div>'; });
-else h += '<div class="tip"><h3>지금의 사랑을 지켜 가기</h3><ul>'+KEEP_TIPS.map(function(t){ return '<li>'+t+'</li>'; }).join("")+'</ul></div>';
-h += '</div><p class="insight">'+(isIdeal
-   ? '스턴버그는 실제 관계의 삼각형과 마음속에 그리는 이상적인 삼각형을 나눠서 봤어요. 두 삼각형이 비슷할수록 관계에 더 만족하는 경향이 있다고 해요.'
-   : '사랑의 삼각형은 시간이 지나며 변해요. 스턴버그에 따르면 열정은 빠르게 커졌다가 줄어드는 반면, 친밀감과 약속은 천천히 자라요. 두 사람의 삼각형 모양이 비슷할수록 관계에 더 만족하는 경향도 있어요.')+'</p></section>';
-
-// 시간에 따른 세 요소 변화. 해석자만 봄
-h += '<section class="rsec interp-only" id="rTime"><h2>시간에 따라 삼각형은 이렇게 변해요</h2><p class="sub">세 요소는 오르는 속도가 서로 달라요. 실제 수치가 아니라 스턴버그가 설명한 흐름을 단순하게 그린 그림이에요.</p>';
-h += '<div class="tchart">'+timeChartSVG()+'</div>'+timeCards();
-h += '<div class="readout tnow"><h3>이 응답자는 그래프의 어디쯤일까</h3><p>'+timeNote(R.bits)+'</p></div></section>';
 
 // 내 답변 돌아보기
 if(!flat){
@@ -661,26 +624,14 @@ if(!flat){
 h += '</div>';
 
 h += '<div class="wrap"><section class="rsec" id="rTypes"><h2>8가지 사랑 유형</h2>'+
-     '<p class="sub taker-only">내 삼각형이 어느 유형에 가까운지는 해석자와 함께 찾아봐요.</p><div class="types taker-only">'+typeCards(null)+'</div>'+
-     '<p class="sub interp-only">‘나’ 표시가 응답자 점수로 계산한 유형이에요.</p><div class="types interp-only">'+typeCards(R.bits)+'</div></section></div>';
-// 해석자가 직접 적는 칸. 내용은 renderNote()가 채움
-h += '<div class="wrap narrow"><section class="rsec" id="rNote"><h2>해석자의 해석</h2>'+
-     '<p class="sub taker-only">해석자가 내 삼각형을 보고 함께 이야기한 내용이에요.</p>'+
-     '<p class="sub interp-only">응답자와 이야기하며 직접 적어 주세요. 적은 내용은 응답자 화면과 ‘결과 복사하기’에 그대로 들어가요. 입력하는 즉시 이 기기에 저장돼요.</p>'+
-     '<div class="note" id="note"></div></section></div>';
+     '<p class="sub">내 삼각형이 어느 유형에 가까운지는 해석자와 함께 찾아봐요.</p><div class="types">'+typeCards(null)+'</div></section></div>';
 
 h += '<div class="wrap narrow"><div class="refs" style="margin-top:56px"><p>Sternberg, R. J. (1986). A triangular theory of love. <i>Psychological Review, 93</i>(2), 119–135.</p><p>Sternberg, R. J. (1997). Construct validation of a triangular love scale. <i>European Journal of Social Psychology, 27</i>(3), 313–335.</p></div>';
 // 맨 아래 버튼들
-h += '<div class="ractions"><button class="btn green" id="copyBtn" type="button">결과 복사하기</button><button class="btn line" id="printBtn" type="button">PDF로 저장</button><button class="btn line taker-only" id="interpModeBtn" type="button">해석자 모드</button><button class="btn line interp-only" id="guideBtn" type="button">해석 가이드 PDF 받기</button>'+(MAIL_URL ? '<button class="btn line interp-only" id="resendBtn" type="button">해석자 메일로 다시 보내기</button>' : '')+'</div>';
+h += '<div class="ractions"><button class="btn green" id="copyBtn" type="button">결과 복사하기</button><button class="btn line" id="printBtn" type="button">PDF로 저장</button></div>';
 h += '<p class="redit">답을 바꾸고 싶다면 <button class="linkbtn" type="button" id="reviewBtn">답변 수정하기</button></p></div>';
 
 $("#result").innerHTML = h;
-document.body.classList.remove("interp-mode");
-if(!state.note) state.note = {};
-// 해석자 칸 예시 버튼에 쓸 것들 기억해 둠
-var growTips = isIdeal ? IDEAL_TIPS : (weak.length ? [].concat.apply([], weak.map(function(i){ return COMP[i].tips; })) : KEEP_TIPS);
-noteCtx = {typeHint: T.name+" ("+code+")", growTips: growTips};
-renderNote();
 show("result");
 animateTri($("#resFig"), R.avg);
 // 막대랑 그래프 애니메이션 시작
@@ -693,61 +644,14 @@ document.querySelectorAll("#result .rnav [data-go]").forEach(function(b){
   b.onclick = function(){ var t = document.getElementById(b.dataset.go); if(t) window.scrollTo({top: t.getBoundingClientRect().top + window.scrollY - 124, behavior: reduceMotion ? "auto" : "smooth"}); };
 });
 
-// 결과 복사. 카톡이나 인스타에 바로 붙여넣기 좋게
-// 유형은 자동으로 안 넣고, 해석자가 적은 내용만 들어감
+// 결과 복사. 카톡이나 인스타에 바로 붙여넣기 좋게 (유형은 안 넣음)
 $("#copyBtn").onclick = function(){
-  var n = state.note || {}, out = ["[사랑의 삼각형 검사] "+DEPT+" "+BOOTH, "친밀감 "+R.avg[0].toFixed(1)+", 열정 "+R.avg[1].toFixed(1)+", 약속·책임감 "+R.avg[2].toFixed(1)+" (7점 만점)"];
-  if((n.who||"").trim()) out.push("\n해석자: "+n.who.trim());
-  NOTE_FIELDS.forEach(function(f){ if((n[f.k]||"").trim()) out.push("\n["+f.l+"]\n"+n[f.k].trim()); });
+  var out = ["[사랑의 삼각형 검사] "+DEPT+" "+BOOTH, "친밀감 "+R.avg[0].toFixed(1)+", 열정 "+R.avg[1].toFixed(1)+", 약속·책임감 "+R.avg[2].toFixed(1)+" (7점 만점)"];
   if(location.protocol.indexOf("http")===0) out.push("\n나도 해 보기: "+location.href.split("#")[0]);
   copyText(out.join("\n"));
 };
-$("#interpModeBtn").onclick = function(){ setMode(true); window.scrollTo(0,0); };
-$("#exitInterp").onclick = function(){ setMode(false); window.scrollTo(0,0); };
 $("#printBtn").onclick = function(){ window.print(); };
-$("#guideBtn").onclick = downloadReport;
-if($("#resendBtn")) $("#resendBtn").onclick = function(){ sendReport(true); };
-setSend(sendStatus);
 $("#reviewBtn").onclick = function(){ state.page = 0; show("quiz"); renderPage(); };
-}
-// 여기부터 해석자 모드
-// 해석은 자동으로 알려주지 않고 해석자가 응답자랑 얘기하면서 직접 적음
-// 적은 건 state.note에 저장. 새로 검사 시작하면 state가 통째로 바뀌어서 같이 지워짐
-var NOTE_FIELDS = [
-{k:"type", l:"사랑 유형", one:true, ph:"예: 우애적 사랑"},
-{k:"sum",  l:"종합 해석", ph:"삼각형의 크기와 모양, 응답자와 나눈 이야기를 바탕으로 적어 주세요."},
-{k:"good", l:"강점", ph:"이 사랑에서 잘 자라고 있는 부분"},
-{k:"grow", l:"키워 갈 점", ph:"함께 정한 실천 한 가지나 살펴볼 점", tips:true}
-];
-var noteCtx = {typeHint:"", growTips:[]};
-function isInterp(){ return document.body.classList.contains("interp-mode"); }
-function setMode(on){ document.body.classList.toggle("interp-mode", !!on); renderNote(); }
-function saveNote(k, v){ if(!state.note) state.note = {}; state.note[k] = v; saveState(); }
-function renderNote(){
-var box = $("#note"); if(!box) return;
-var n = state.note || {};
-if(isInterp()){
-  var h = '<div class="nfield"><label for="n_who">해석자</label><input id="n_who" data-k="who" type="text" autocomplete="off" placeholder="이름 (선택)" value="'+esc(n.who||"")+'"></div>';
-  NOTE_FIELDS.forEach(function(f){
-    h += '<div class="nfield"><label for="n_'+f.k+'">'+f.l+'</label>';
-    h += f.one ? '<input id="n_'+f.k+'" data-k="'+f.k+'" type="text" autocomplete="off" placeholder="'+esc(f.ph)+'" value="'+esc(n[f.k]||"")+'">'
-               : '<textarea id="n_'+f.k+'" data-k="'+f.k+'" placeholder="'+esc(f.ph)+'">'+esc(n[f.k]||"")+'</textarea>';
-    // 참고 예시. 누르면 칸에 들어감
-    if(f.k === "type" && noteCtx.typeHint) h += '<span class="hint">점수로 계산한 유형 · 누르면 들어가요</span><div class="sugg"><button type="button" data-set="'+esc(noteCtx.typeHint)+'">'+esc(noteCtx.typeHint)+'</button></div>';
-    if(f.tips && noteCtx.growTips.length) h += '<span class="hint">참고 예시 · 누르면 덧붙여져요</span><div class="sugg">'+noteCtx.growTips.map(function(t){ return '<button type="button" data-add="'+esc(t)+'">'+esc(t)+'</button>'; }).join("")+'</div>';
-    h += '</div>';
-  });
-  box.innerHTML = h;
-  box.querySelectorAll("[data-k]").forEach(function(el){ el.addEventListener("input", function(){ saveNote(el.dataset.k, el.value); }); });
-  box.querySelectorAll("[data-set]").forEach(function(b){ b.onclick = function(){ var el = $("#n_type"); el.value = b.dataset.set; saveNote("type", el.value); }; });
-  box.querySelectorAll("[data-add]").forEach(function(b){ b.onclick = function(){ var el = $("#n_grow"); el.value = (el.value.trim() ? el.value.replace(/\s+$/,"")+"\n" : "") + b.dataset.add; saveNote("grow", el.value); el.focus(); }; });
-}else{
-  var filled = NOTE_FIELDS.filter(function(f){ return (n[f.k]||"").trim(); });
-  box.innerHTML = filled.length
-    ? ((n.who||"").trim() ? '<p class="note-by">해석자 · '+esc(n.who.trim())+'</p>' : '') +
-      filled.map(function(f){ return '<div class="nfield"><b>'+f.l+'</b><p>'+esc(n[f.k].trim())+'</p></div>'; }).join("")
-    : '<div class="note-empty">아직 적힌 해석이 없어요.<br>이 화면을 해석자에게 보여 주고 함께 이야기해 보세요.</div>';
-}
 }
 // 클립보드 복사. 안 되는 폰도 있어서 옛날 방식으로 한 번 더 시도함
 function copyText(txt){
@@ -766,7 +670,6 @@ else fallback();
 // 여기부터 해석자에게 보내는 PDF
 // 해석자가 이론을 잘 몰라도 이 PDF만 보고 해석해 줄 수 있게, 점수 + 해석 순서 + 설명을 다 넣음
 function pad(n){ return (n < 10 ? "0" : "") + n; }
-function ridHTML(){ return '<p class="rid">접수번호 <b>'+esc(rid())+'</b></p><p class="send js-send" hidden></p>'; }
 // 시간 변화 설명 카드 세 개
 // short면 해석 포인트는 빼고 그림 (메인 화면용)
 function timeCards(short){
@@ -839,7 +742,7 @@ var steps = [
  ["삼각형의 모양 보기", shapeInfo(R.avg)+" 모양은 사랑의 <b>종류</b>예요. 5점 이상인 요소를 대문자로 써서 코드 <b>"+code+"</b>, 유형은 <b>"+T.name+"</b>이에요.", "“"+opener(R, T)+"”"],
  ["시간 이야기 나누기", "4쪽 그래프를 보여 주세요. 세 요소는 오르는 속도가 달라요. "+timeNote(R.bits), "“지금 관계는 얼마나 되셨어요? 그래프에서 어디쯤인 것 같아요?”"],
  ["답변 돌아보기", flat ? "모든 문장에 같은 점수를 줬어요. 문장을 돌아보기보다 검사하면서 어떤 생각이 들었는지 물어보세요." : "5쪽에 가장 그렇다, 가장 아니다로 답한 문장이 있어요. 그 문장을 짚으며 이야기를 들어 보세요.", flat ? "“답하면서 어떤 생각이 들었어요?”" : "“이 문장에 "+state.answers[hiI[0]]+"점을 주셨는데, 어떤 순간이 떠올랐어요?”"],
- ["키워 갈 점 하나 정하고 마무리", "3쪽의 요소별 팁 중 하나를 응답자와 함께 골라요. 정한 내용은 응답자 휴대폰의 ‘해석자 모드’ 맨 아래 <b>해석자의 해석</b>에 적어 주면 응답자 화면에 남아요.", "“오늘 이야기 중에 하나만 실천해 본다면 뭐가 좋을까요?”"]
+ ["키워 갈 점 하나 정하고 마무리", "3쪽의 요소별 팁 중 이 응답자에게 맞는 것 하나를 함께 골라요. 응답자가 직접 말하게 하면 더 오래 기억해요.", "“오늘 이야기 중에 하나만 실천해 본다면 뭐가 좋을까요?”"]
 ];
 steps.forEach(function(s, i){ h += '<div class="rp-blk rp-step"><span class="n">'+(i+1)+'</span><div><h3>'+s[0]+'</h3><p>'+s[1]+'</p><p class="say">'+s[2]+'</p></div></div>'; });
 
@@ -929,30 +832,14 @@ return loadLib().then(function(){
 });
 }
 function pdfName(){ return "사랑의삼각형_"+rid()+".pdf"; }
-// 해석자 모드의 PDF 받기 버튼
-var pdfBusy = false;
-function downloadReport(){
-if(pdfBusy) return; pdfBusy = true; toast("PDF를 만들고 있어요");
-makePdf().then(function(pdf){ pdf.save(pdfName()); }).catch(function(e){ console.error(e); toast("PDF를 만들지 못했어요. 인터넷 연결을 확인해 주세요"); }).then(function(){ pdfBusy = false; });
-}
-
-// 메일 보내기. 같은 답변으로는 한 번만 보냄 (결과 다시 보기 눌러도 또 안 감)
-var sendStatus = "", sendBusy = false;
+// 해석자에게 메일 보내기. 화면에는 아무것도 안 띄우고 뒤에서 조용히 보냄
+// 같은 답변으로는 한 번만 보냄. 실패하면 몇 초 뒤에 알아서 다시 시도함 (최대 3번)
+var sendBusy = false;
 function reportSig(){ return state.answers.join("")+"|"+state.target+"|"+(state.name||""); }
-function setSend(st){
-sendStatus = st;
-if(!st && MAIL_URL && state.sent && state.sent === reportSig()) st = "sent";
-var msg = {sending:"해석자에게 결과를 보내는 중이에요…", sent:"해석자에게 결과를 보냈어요", fail:"해석자에게 보내지 못했어요. "}[st];
-document.querySelectorAll(".js-send").forEach(function(el){
-  el.hidden = !msg; el.className = "send js-send " + st;
-  el.innerHTML = msg ? esc(msg) + (st === "fail" ? '<button type="button" class="linkbtn">다시 보내기</button>' : "") : "";
-  var b = el.querySelector("button"); if(b) b.onclick = function(){ sendReport(true); };
-});
-}
-function sendReport(force){
-if(!MAIL_URL || sendBusy) return;
-if(!force && state.sent === reportSig()){ setSend("sent"); return; }
-sendBusy = true; setSend("sending");
+function sendReport(tries){
+tries = tries || 0;
+if(!MAIL_URL || sendBusy || state.sent === reportSig()) return;
+sendBusy = true;
 var R = compute(), T = TYPES[R.bits], code = codeText(R.bits), sig = reportSig();
 var sc = "친밀감 "+R.avg[0].toFixed(1)+" · 열정 "+R.avg[1].toFixed(1)+" · 약속·책임감 "+R.avg[2].toFixed(1);
 makePdf().then(function(pdf){
@@ -969,8 +856,11 @@ makePdf().then(function(pdf){
   return fetch(MAIL_URL, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(body)});
 }).then(function(r){ return r.json(); }).then(function(j){
   if(!j || !j.ok) throw new Error(j && j.error || "전송 실패");
-  state.sent = sig; saveState(); setSend("sent");
-}).catch(function(e){ console.error(e); setSend("fail"); }).then(function(){ sendBusy = false; });
+  state.sent = sig; saveState(); sendBusy = false;
+}).catch(function(e){
+  console.error(e); sendBusy = false;
+  if(tries < 2) setTimeout(function(){ sendReport(tries+1); }, 5000);
+});
 }
 
 // 로고 누르면 메인으로
