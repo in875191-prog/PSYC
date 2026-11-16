@@ -10,7 +10,7 @@ var BOOTH = "체험 부스";
 // 해석자에게 메일 보내는 주소. 구글 Apps Script 웹 앱 URL을 넣으면 됨 (만드는 법은 README 참고)
 // 비워 두면 메일은 안 보내고, 해석자 모드에서 PDF 내려받기만 됨
 // 받는 사람 메일 주소는 여기 말고 Apps Script(Code.gs) 안에 적음. 그래야 아무 데나 못 보냄
-var MAIL_URL = "https://script.google.com/macros/s/AKfycbw759aoGdrS9pOapzFUiV7DR_yKIW4TbNEhRu7Yk4XWkDELz_nMRzgl0KwCPiXHXZ7r/exec";
+var MAIL_URL = "https://script.google.com/macros/s/AKfycbx37YbACbqL6oaXHgskP9gWhvWXXVAISc0x8VN6yBSCaXtgO6JOfka3R2CxDyXf3y3C/exec";
 // PDF 만들어 주는 라이브러리. 필요할 때만 불러옴 (처음부터 불러오면 폰에서 느려짐)
 var PDF_LIB = "https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js";
 
