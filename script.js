@@ -509,8 +509,8 @@ if(e.key >= "1" && e.key <= "7"){
 });
 
 // 완료 화면 버튼들. 해석 받기 눌러야 드디어 결과 공개
-// 결과 보기 누르는 순간 해석 가이드 링크를 해석자 메일로 보냄
-$("#interpBtn").onclick = function(){ showResult(); sendReport(); };
+// 결과 보기 누르면 결과 화면으로 (메일은 showResult 안에서 보냄)
+$("#interpBtn").onclick = function(){ showResult(); };
 $("#doneReview").onclick = function(){ state.page = 0; saveState(); show("quiz"); renderPage(); };
 
 // 여기부터 결과 삼각형 그래프
@@ -654,6 +654,8 @@ $("#copyBtn").onclick = function(){
 };
 $("#printBtn").onclick = function(){ window.print(); };
 $("#reviewBtn").onclick = function(){ state.page = 0; show("quiz"); renderPage(); };
+// 결과가 보이면 해석자에게 메일 보냄. 결과 다시 보기로 들어와도 아직 안 갔으면 보냄 (같은 답변은 한 번만)
+sendReport();
 }
 // 클립보드 복사. 안 되는 폰도 있어서 옛날 방식으로 한 번 더 시도함
 function copyText(txt){
@@ -816,12 +818,14 @@ Promise.resolve().then(function(){
     link: link
   };
   // text/plain으로 보내야 브라우저가 사전 확인(CORS preflight)을 안 해서 Apps Script로 바로 감
-  return fetch(MAIL_URL, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(body)});
+  // keepalive: 결과 뜨자마자 창을 닫아도 끝까지 보내게 함
+  return fetch(MAIL_URL, {method:"POST", keepalive:true, headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(body)});
 }).then(function(r){ return r.json(); }).then(function(j){
   if(!j || !j.ok) throw new Error(j && j.error || "전송 실패");
-  state.sent = sig; saveState(); sendBusy = false;
+  state.sent = sig; state.mailLog = {at:Date.now(), ok:true}; saveState(); sendBusy = false;
 }).catch(function(e){
-  console.error(e); sendBusy = false;
+  // 실패 기록은 mailtest.html에서 볼 수 있음
+  console.error(e); sendBusy = false; state.mailLog = {at:Date.now(), ok:false, err:String(e && e.message || e)}; saveState();
   if(tries < 2) setTimeout(function(){ sendReport(tries+1); }, 5000);
 });
 }

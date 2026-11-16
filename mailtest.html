@@ -23,10 +23,21 @@ code{font-size:12px;word-break:break-all;color:#646C7C}
 <p class="sub">버튼을 누르면 해석자 메일로 <b>접수 TEST</b> 메일을 한 통 보내 보고, 안 되면 이유를 알려 줘요.</p>
 <button id="go" type="button">점검 시작</button>
 <div id="out"></div>
+<div id="last"></div>
 <script>
 (function(){
 var out = document.getElementById("out"), go = document.getElementById("go");
 function add(cls, title, msg){ var d = document.createElement("div"); d.className = "box " + cls; d.innerHTML = "<b>" + title + "</b>" + msg; out.appendChild(d); }
+// 이 기기에서 검사 끝났을 때 메일 보낸 마지막 기록
+(function(){
+  var st; try{ st = JSON.parse(localStorage.getItem("sternberg-love-v2")); }catch(e){}
+  var L = st && st.mailLog, el = document.getElementById("last");
+  if(!st){ el.innerHTML = '<div class="box"><b>이 기기의 검사 기록</b>이 기기에서 한 검사가 없어요.</div>'; return; }
+  var t = L ? new Date(L.at).toLocaleString("ko-KR") : "";
+  el.innerHTML = '<div class="box ' + (L ? (L.ok ? "ok" : "bad") : "") + '"><b>이 기기에서 마지막으로 한 검사 (접수 ' + (st.rid || "?") + ')</b>' +
+    (!L ? "메일을 보낸 기록이 없어요. 검사 페이지가 예전 파일로 열렸을 수 있어요. 검사 페이지를 새로고침한 뒤 다시 해 보세요."
+        : L.ok ? t + " 해석자에게 보냈어요." : t + " 보내지 못했어요.<br><code>" + String(L.err).replace(/</g,"&lt;") + "</code>") + '</div>';
+})();
 go.onclick = function(){
   out.innerHTML = ""; go.disabled = true; go.textContent = "점검 중…";
   var url = "";
