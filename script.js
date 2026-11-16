@@ -8,11 +8,9 @@ var DEPT  = "심리학과";
 var BOOTH = "체험 부스";
 
 // 해석자에게 메일 보내는 주소. 구글 Apps Script 웹 앱 URL을 넣으면 됨 (만드는 법은 README 참고)
-// 비워 두면 메일은 안 보내고, 해석자 모드에서 PDF 내려받기만 됨
+// 비워 두면 메일 안 보냄
 // 받는 사람 메일 주소는 여기 말고 Apps Script(Code.gs) 안에 적음. 그래야 아무 데나 못 보냄
-var MAIL_URL = "https://script.google.com/macros/s/AKfycbztY8zwr34vGzhsnfAnSQU9AZKz21lTSk_ZkjtZaLM5oVu_MWK_f7hff-bU79mr4fs6/exec";
-// PDF 만들어 주는 라이브러리. 해석 가이드 페이지(report.html)에서 PDF 저장 누를 때만 불러옴
-var PDF_LIB = "https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js";
+var MAIL_URL = "https://script.google.com/macros/s/AKfycbyPNs8KIbwVZ78vrFg6JbsQXiJaBnZXmec87P0_UHnYF02P5dgIB3AX7pzBsoKK-XN8/exec";
 
 // 문항 데이터 45개
 // c는 어느 요소 문항인지 번호임. 0이 친밀감, 1이 열정, 2가 약속·책임감 (15개씩)
@@ -239,7 +237,7 @@ var TIME_TYPE = {
 "011":"빠르게 오르는 열정을 따라 약속도 빨리 올라갔지만, 천천히 쌓여야 하는 친밀감이 아직 따라오지 못한 모양이에요.",
 "111":"세 곡선이 모두 높은 지점에 있어요. 시간이 지나면 열정은 자연스럽게 잦아드는 경향이 있어서, 이 모양을 지키려면 꾸준한 노력이 필요해요."
 };
-// svg 안 글씨용 글꼴. PDF 만들 때 svg는 그림으로 바뀌어서 css 변수(var(--font))를 못 읽음
+// svg 안 글씨용 글꼴
 var SVG_FONT = "'Pretendard Variable',Pretendard,'Apple SD Gothic Neo','Malgun Gothic','Noto Sans CJK KR',sans-serif";
 // 시간에 따른 세 요소 변화 그래프
 function timeChartSVG(){
@@ -314,7 +312,7 @@ function toast(msg){ var t = $("#toast"); t.textContent = msg; t.classList.add("
 var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 // 답변 저장. 브라우저 localStorage에 넣어서 새로고침해도 안 날아감
-// 검사를 끝내면 결과 PDF가 해석자 메일로만 감 (MAIL_URL 설정했을 때). 그 외엔 어디에도 안 보냄
+// 검사를 끝내면 해석 가이드 링크가 해석자 메일로만 감 (MAIL_URL 설정했을 때). 그 외엔 어디에도 안 보냄
 // 저장 키 이름. 데이터 구조 바꾸면 v3로 올려야 옛날 거랑 안 꼬임
 var STORE = "sternberg-love-v2";
 var state = {name:"", target:"partner", answers:new Array(TOTAL).fill(null), page:0};
@@ -327,7 +325,7 @@ return null;
 function saveState(){ if(REPORT) return; try{ localStorage.setItem(STORE, JSON.stringify(state)); }catch(e){} }
 // 지금 고른 대상 정보 가져오기
 function mode(){ return MODES[state.target] || MODES.partner; }
-// 접수번호. 해석자가 메일로 받은 PDF랑 눈앞의 응답자를 맞춰 보는 용도
+// 접수번호. 해석자가 메일로 받은 링크랑 눈앞의 응답자를 맞춰 보는 용도
 // 헷갈리는 글자(0 O 1 I L)는 뺐음
 function newRid(){ var a = "23456789ABCDEFGHJKMNPQRSTUVWXYZ", r = ""; for(var i=0;i<4;i++) r += a.charAt(Math.floor(Math.random()*a.length)); return r; }
 function rid(){ if(!state.rid){ state.rid = newRid(); saveState(); } return state.rid; }
@@ -511,7 +509,7 @@ if(e.key >= "1" && e.key <= "7"){
 });
 
 // 완료 화면 버튼들. 해석 받기 눌러야 드디어 결과 공개
-// 결과 보기 누르는 순간 해석 가이드 PDF를 해석자 메일로 보냄
+// 결과 보기 누르는 순간 해석 가이드 링크를 해석자 메일로 보냄
 $("#interpBtn").onclick = function(){ showResult(); sendReport(); };
 $("#doneReview").onclick = function(){ state.page = 0; saveState(); show("quiz"); renderPage(); };
 
@@ -521,7 +519,7 @@ var S3 = Math.sqrt(3)/2, DIRS = [[0,-1],[-S3,.5],[S3,.5]], CX = 220, CY = 230, R
 function triPts(vals){ return vals.map(function(v,i){ return [CX + DIRS[i][0]*RR*v/7, CY + DIRS[i][1]*RR*v/7]; }); }
 function ptsStr(p){ return p.map(function(q){ return q[0].toFixed(1)+","+q[1].toFixed(1); }).join(" "); }
 // 그래프 svg 만들기. 점선은 5점 기준선
-// still을 넣으면 애니메이션 없이 완성된 모양으로 그림 (PDF용)
+// still을 넣으면 애니메이션 없이 완성된 모양으로 그림 (해석 가이드용)
 function chartSVG(sc, still){
 var V = triPts([7,7,7]), Z = triPts([0,0,0]);
 var s = '<svg viewBox="0 0 440 400" role="img" aria-label="친밀감 '+sc[0].toFixed(1)+'점, 열정 '+sc[1].toFixed(1)+'점, 약속·책임감 '+sc[2].toFixed(1)+'점으로 그린 사랑의 삼각형">';
@@ -580,7 +578,7 @@ return "<b>"+h+"</b>"+josa(h,"이")+" 가장 강하고 <b>"+l+"</b>"+josa(l,"이
 
 
 // 결과 화면 통째로 그리는 함수
-// 응답자에게는 점수랑 삼각형만 보여줌. 유형 해석은 해석자가 메일로 받은 PDF 보고 직접 해 줌
+// 응답자에게는 점수랑 삼각형만 보여줌. 유형 해석은 해석자가 메일로 받은 해석 가이드 보고 직접 해 줌
 function showResult(){
 var R = compute(), M = mode();
 var nm = dispName();
@@ -671,8 +669,8 @@ else fallback();
 
 
 
-// 여기부터 해석자에게 보내는 PDF
-// 해석자가 이론을 잘 몰라도 이 PDF만 보고 해석해 줄 수 있게, 점수 + 해석 순서 + 설명을 다 넣음
+// 여기부터 해석 가이드 (report.html)
+// 해석자가 이론을 잘 몰라도 이 페이지만 보고 해석해 줄 수 있게, 점수 + 해석 순서 + 설명을 다 넣음
 function pad(n){ return (n < 10 ? "0" : "") + n; }
 // 시간 변화 설명 카드 세 개
 // short면 해석 포인트는 빼고 그림 (메인 화면용)
@@ -711,7 +709,7 @@ var li = function(t){ return '<li>'+t+'</li>'; };
 var head = function(n, t){ return '<div class="rp-h"><span>'+n+'</span><h2>'+t+'</h2></div>'; };
 var h = '<div class="rp">';
 
-// 1쪽. 한눈에 보기
+// 한눈에 보기
 h += '<div class="rp-top"><div><p class="rp-k">사랑의 삼각형 검사 · 해석자용 가이드</p><h1>접수번호 '+esc(rid())+'</h1></div>';
 h += '<div class="rp-meta"><span>'+dt+'</span><span>떠올린 사람: '+who+'</span><span>'+esc(DEPT+" "+BOOTH)+'</span></div></div>';
 h += '<div class="rp-blk rp-type" style="--tbg:'+T.bg+';--tc:'+T.tc+'">'+triIcon(R.bits, T.tc)+'<div><p class="rp-k">점수로 계산한 유형</p><p class="nm">'+T.name+' <span class="code">'+codeHTML(R.bits)+'</span></p><p class="en">'+T.en+' · '+T.tag+'</p><p>'+T.sum+'</p></div></div>';
@@ -727,21 +725,21 @@ if(state.target === "ideal") h += '<p class="rp-warn">이상형을 떠올리고 
 else if(state.target === "crush") h += '<p class="rp-warn">좋아하는 사람(사귀기 전)을 떠올리고 답했어요. 약속·책임감이 낮게 나오는 게 자연스러워요.</p>';
 h += '<div class="rp-gw"><div class="good"><b>강점</b><p>'+T.good+'</p></div><div class="watch"><b>살펴보면 좋은 점</b><p>'+T.watch+'</p></div></div></div>';
 
-// 2쪽. 해석 순서
+// 해석 순서
 h += '<div class="rp-new">'+head(1,"이 순서대로 해석해 주세요")+'<p class="rp-lead">한 사람에 5분 정도면 충분해요. 굵은 글씨는 그대로 말해도 되는 문장이에요.</p></div>';
 var steps = [
  ["누구를 떠올렸는지 확인하기", "이 응답자는 <b>"+M.label+"</b>"+josa(M.label,"을")+" 떠올리고 답했어요."+(state.target === "ideal" ? " 이상형 결과는 실제 관계가 아니라 기대하는 사랑의 모습으로 해석해요." : ""), "“어떤 분을 떠올리며 하셨어요? 말하고 싶은 만큼만 알려 주세요.”"],
  ["세 요소 소개하기", "친밀감은 <b>마음의 가까움</b>, 열정은 <b>설렘과 끌림</b>, 약속·책임감은 <b>이 관계를 지키려는 결심</b>이에요. 세 요소가 삼각형의 세 꼭짓점이에요.", "“스턴버그라는 심리학자는 사랑을 세 가지 재료로 된 삼각형이라고 봤어요.”"],
  ["삼각형의 크기 보기", "크기는 사랑의 <b>강도</b>예요. 이 응답자는 <b>"+size.pct+"% ("+size.label+")</b>예요. "+size.txt, "“삼각형이 클수록 이 사람에게 쏟는 마음이 크다는 뜻이에요.”"],
  ["삼각형의 모양 보기", shapeInfo(R.avg)+" 모양은 사랑의 <b>종류</b>예요. 5점 이상인 요소를 대문자로 써서 코드 <b>"+code+"</b>, 유형은 <b>"+T.name+"</b>이에요.", "“"+opener(R, T)+"”"],
- ["시간 이야기 나누기", "4쪽 그래프를 보여 주세요. 세 요소는 오르는 속도가 달라요. "+timeNote(R.bits), "“지금 관계는 얼마나 되셨어요? 그래프에서 어디쯤인 것 같아요?”"],
- ["답변 돌아보기", flat ? "모든 문장에 같은 점수를 줬어요. 문장을 돌아보기보다 검사하면서 어떤 생각이 들었는지 물어보세요." : "5쪽에 가장 그렇다, 가장 아니다로 답한 문장이 있어요. 그 문장을 짚으며 이야기를 들어 보세요.", flat ? "“답하면서 어떤 생각이 들었어요?”" : "“이 문장에 "+state.answers[hiI[0]]+"점을 주셨는데, 어떤 순간이 떠올랐어요?”"],
- ["키워 갈 점 하나 정하고 마무리", "3쪽의 요소별 팁 중 이 응답자에게 맞는 것 하나를 함께 골라요. 응답자가 직접 말하게 하면 더 오래 기억해요.", "“오늘 이야기 중에 하나만 실천해 본다면 뭐가 좋을까요?”"]
+ ["시간 이야기 나누기", "아래 ‘시간에 따라 세 요소는 이렇게 변해요’ 그래프를 보여 주세요. 세 요소는 오르는 속도가 달라요. "+timeNote(R.bits), "“지금 관계는 얼마나 되셨어요? 그래프에서 어디쯤인 것 같아요?”"],
+ ["답변 돌아보기", flat ? "모든 문장에 같은 점수를 줬어요. 문장을 돌아보기보다 검사하면서 어떤 생각이 들었는지 물어보세요." : "아래 ‘응답 전체’에서 ★는 가장 그렇다, ▽는 가장 아니다로 답한 문장이에요. 그 문장을 짚으며 이야기를 들어 보세요.", flat ? "“답하면서 어떤 생각이 들었어요?”" : "“이 문장에 "+state.answers[hiI[0]]+"점을 주셨는데, 어떤 순간이 떠올랐어요?”"],
+ ["키워 갈 점 하나 정하고 마무리", "아래 ‘세 요소 하나씩 보기’의 키우는 방법 중 이 응답자에게 맞는 것 하나를 함께 골라요. 응답자가 직접 말하게 하면 더 오래 기억해요.", "“오늘 이야기 중에 하나만 실천해 본다면 뭐가 좋을까요?”"]
 ];
 steps.forEach(function(s, i){ h += '<div class="rp-blk rp-step"><span class="n">'+(i+1)+'</span><div><h3>'+s[0]+'</h3><p>'+s[1]+'</p><p class="say">'+s[2]+'</p></div></div>'; });
 
 
-// 3쪽. 요소별
+// 요소별
 h += '<div class="rp-new">'+head(2,"세 요소 하나씩 보기")+'<p class="rp-lead">각 요소는 15문장의 평균이에요. 1점(전혀 아니다)부터 7점(매우 그렇다)까지예요.</p></div>';
 COMP.forEach(function(c,i){
   h += '<div class="rp-blk rp-comp '+c.key+'"><div class="ch"><b>'+LETTER[i]+'</b><h3>'+c.name+'</h3><span class="kw">'+c.kw+'</span><span class="sc">'+R.avg[i].toFixed(1)+'점 <em class="'+lv[i]+'">'+LV_TXT[lv[i]]+'</em></span></div>';
@@ -751,13 +749,13 @@ COMP.forEach(function(c,i){
 if(state.target === "ideal") h += '<div class="rp-blk rp-say"><b>이상형 결과 활용하기</b><ul>'+IDEAL_TIPS.map(li).join("")+'</ul></div>';
 else if(!weak.length) h += '<div class="rp-blk rp-say"><b>세 요소가 모두 높아요. 지금의 사랑을 지켜 가려면</b><ul>'+KEEP_TIPS.map(li).join("")+'</ul></div>';
 
-// 4쪽. 시간
+// 시간
 h += '<div class="rp-new">'+head(3,"시간에 따라 세 요소는 이렇게 변해요")+'<p class="rp-lead">세 요소는 오르는 속도가 서로 달라요. 실제 수치가 아니라 스턴버그(1986)가 설명한 일반적인 흐름을 단순하게 그린 그림이에요. 관계마다 다를 수 있어요.</p></div>';
 h += '<div class="rp-blk rp-chart">'+timeChartSVG()+'</div>';
 h += '<div class="rp-blk">'+timeCards()+'</div>';
 h += '<div class="rp-blk rp-say"><b>이 응답자는 그래프의 어디쯤일까</b><p>'+timeNote(R.bits)+'</p></div>';
 
-// 5쪽. 응답 전체
+// 응답 전체
 h += '<div class="rp-new">'+head(4,"응답 전체")+'<p class="rp-lead">★는 가장 그렇다고 답한 문장, ▽는 가장 아니라고 답한 문장이에요. 이야기를 꺼낼 때 활용해 주세요.</p></div>';
 h += '<div class="rp-ans">';
 COMP.forEach(function(c,ci){
@@ -777,55 +775,6 @@ h += '<div class="rp-blk rp-refs"><p>Sternberg, R. J. (1986). A triangular theor
 return h + '</div>';
 }
 
-// PDF 라이브러리는 처음 필요할 때 한 번만 불러옴
-var libP = null;
-function loadLib(){
-if(window.html2pdf) return Promise.resolve();
-if(libP) return libP;
-libP = new Promise(function(ok, no){
-  var sc = document.createElement("script"); sc.src = PDF_LIB;
-  sc.onload = ok; sc.onerror = function(){ libP = null; no(new Error("PDF 라이브러리를 불러오지 못했어요")); };
-  document.head.appendChild(sc);
-});
-return libP;
-}
-// PDF 만들기. 화면 밖에 몰래 그려 놓고 그림으로 찍어서 A4에 붙임
-// 한글 글꼴을 PDF에 넣는 게 번거로워서 이렇게 함. 글씨가 안 깨지는 게 장점
-function makePdf(){
-return loadLib().then(function(){
-  var host = document.createElement("div");
-  host.className = "rp-host"; host.setAttribute("aria-hidden", "true");
-  host.innerHTML = buildReport();
-  document.body.appendChild(host);
-  // svg는 PDF 찍을 때 깨지거나 사라져서, 화면에 그려진 크기 그대로 그림 파일로 바꿔 끼움
-  host.querySelectorAll("svg").forEach(function(sv){
-    var r = sv.getBoundingClientRect(), c = sv.cloneNode(true), img = new Image();
-    c.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-    c.setAttribute("width", Math.round(r.width*2)); c.setAttribute("height", Math.round(r.height*2));
-    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(c.outerHTML);
-    img.style.cssText = "display:block;width:"+r.width+"px;height:"+r.height+"px;flex:none";
-    sv.parentNode.replaceChild(img, sv);
-  });
-  var imgs = Array.prototype.map.call(host.querySelectorAll("img"), function(im){ return im.decode ? im.decode().catch(function(){}) : null; });
-  var fonts = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
-  return Promise.all(imgs.concat([fonts])).then(function(){
-    return window.html2pdf().set({
-      margin:[12,12,14,12],
-      image:{type:"jpeg", quality:.9},
-      html2canvas:{scale:Math.min(2, Math.max(1.5, window.devicePixelRatio || 1)), backgroundColor:"#ffffff", logging:false},
-      jsPDF:{unit:"mm", format:"a4", orientation:"portrait"},
-      pagebreak:{mode:["css","legacy"], before:".rp-new", avoid:".rp-blk"}
-    }).from(host.firstChild).toPdf().get("pdf");
-  }).then(function(pdf){
-    // 쪽 번호. jsPDF는 한글 글꼴이 없어서 영어랑 숫자만 씀
-    var n = pdf.internal.getNumberOfPages();
-    for(var i=1;i<=n;i++){ pdf.setPage(i); pdf.setFontSize(8); pdf.setTextColor(154,161,174); pdf.text("No. "+rid()+"   "+i+" / "+n, 198, 290, {align:"right"}); }
-    host.remove();
-    return pdf;
-  }, function(e){ host.remove(); throw e; });
-});
-}
-function pdfName(){ return "사랑의삼각형_"+rid()+".pdf"; }
 // 해석 가이드 링크. 결과는 주소 # 뒤에 다 들어 있음 (# 뒤는 서버로 안 가서 깃허브에도 안 남음)
 // a: 45문항 답, t: 떠올린 사람 종류, n: 이름, r: 접수번호, d: 검사한 시각
 function reportLink(){
@@ -843,14 +792,6 @@ if(!/^[1-7]{45}$/.test(p.a || "") || !MODES[p.t] || !/^[0-9A-Z]{4}$/.test(p.r ||
 state = {name:(p.n || "").slice(0,12), target:p.t, answers:p.a.split("").map(Number), page:0, rid:p.r, at:+p.d || 0};
 document.title = "해석 가이드 " + p.r + " | 사랑의 삼각형";
 box.innerHTML = buildReport();
-$("#rpSave").onclick = downloadReport;
-}
-// PDF 저장 버튼
-var pdfBusy = false;
-function downloadReport(){
-if(pdfBusy) return; pdfBusy = true;
-var b = $("#rpSave"), t = b.textContent; b.textContent = "PDF 만드는 중…"; b.disabled = true;
-makePdf().then(function(pdf){ pdf.save(pdfName()); }).catch(function(e){ console.error(e); toast("PDF를 만들지 못했어요. 인터넷 연결을 확인해 주세요"); }).then(function(){ pdfBusy = false; b.textContent = t; b.disabled = false; });
 }
 window.addEventListener("hashchange", function(){ if(REPORT) renderReportPage(); });
 
@@ -871,7 +812,7 @@ Promise.resolve().then(function(){
     rid: rid(),
     subject: "[사랑의 삼각형] 접수 "+rid()+" · "+T.name+" ("+code+")",
     text: lines.join("\n"),
-    html: '<div style="font-family:sans-serif;font-size:15px;line-height:1.7"><p style="font-size:22px;font-weight:800;margin:0 0 8px">접수번호 '+esc(rid())+'</p><p style="margin:0">떠올린 사람: '+esc(mode().label)+'<br>세 요소: '+esc(sc)+' <span style="color:#999">(7점 만점)</span><br>점수로 계산한 유형: <b>'+esc(T.name)+' ('+code+')</b></p><p style="margin:20px 0"><a href="'+esc(link)+'" style="display:inline-block;background:#88619A;color:#fff;text-decoration:none;font-weight:700;padding:12px 24px;border-radius:999px">해석 가이드 열기</a></p><p style="color:#666;font-size:13px">링크를 열면 해석 순서와 설명이 모두 나오고, PDF로도 저장할 수 있어요. 응답자에게 접수번호를 확인한 뒤 해석해 주세요.</p></div>',
+    html: '<div style="font-family:sans-serif;font-size:15px;line-height:1.7"><p style="font-size:22px;font-weight:800;margin:0 0 8px">접수번호 '+esc(rid())+'</p><p style="margin:0">떠올린 사람: '+esc(mode().label)+'<br>세 요소: '+esc(sc)+' <span style="color:#999">(7점 만점)</span><br>점수로 계산한 유형: <b>'+esc(T.name)+' ('+code+')</b></p><p style="margin:20px 0"><a href="'+esc(link)+'" style="display:inline-block;background:#88619A;color:#fff;text-decoration:none;font-weight:700;padding:12px 24px;border-radius:999px">해석 가이드 열기</a></p><p style="color:#666;font-size:13px">링크를 열면 해석 순서와 설명이 모두 나와요. 이 메일이 그대로 기록으로 남아요. 응답자에게 접수번호를 확인한 뒤 해석해 주세요.</p></div>',
     link: link
   };
   // text/plain으로 보내야 브라우저가 사전 확인(CORS preflight)을 안 해서 Apps Script로 바로 감

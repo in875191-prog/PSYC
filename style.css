@@ -278,9 +278,7 @@ body[data-screen="quiz"] footer{display:none}
 .tc3-i .pt b{display:block;font-size:12.5px;color:var(--cd)}
 .tnow{margin-top:20px;background:var(--soft);border-radius:12px;padding:18px 20px}
 
-/* 해석자용 PDF. 화면 밖에 그려 놓고 찍어서 PDF로 만듦 (화면엔 안 보임) */
-.rp-host{position:fixed;left:-10000px;top:0;width:703px;background:#fff;pointer-events:none}
-.rp{width:703px;color:var(--ink);font-size:13px;line-height:1.65;background:#fff}
+.rp{color:var(--ink);font-size:13px;line-height:1.65;background:#fff}
 .rp p,.rp ul,.rp ol,.rp h1,.rp h2,.rp h3{margin:0}
 .rp ul{padding-left:1.15em}
 .rp-blk{margin-top:14px}
@@ -364,8 +362,6 @@ body[data-screen="quiz"] footer{display:none}
 /* 해석 가이드 페이지 (report.html). 메일 링크로 들어오는 화면 */
 .rp-page{background:#EEF0F3}
 .rp-topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border-bottom:1px solid var(--line);padding:10px 20px;font-weight:800;font-size:15px}
-.rp-topbar .btn{min-height:42px;padding:0 22px;font-size:15px}
-.rp-topbar .btn:disabled{opacity:.6}
 .rp-view{padding:24px 12px 64px}
 .rp-view .rp{width:auto;max-width:760px;margin:0 auto;background:#fff;border-radius:14px;padding:36px 32px 40px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
 .rp-view .rp-new{margin-top:44px;padding-top:28px;border-top:2px dashed var(--line)}
@@ -383,7 +379,7 @@ body[data-screen="quiz"] footer{display:none}
 }
 
 @media print{
-.hdr,.rnav,footer,.toast,.ractions,.redit,#intro,#setup,#quiz,#done,.rp-host,.rp-topbar{display:none!important}
+.hdr,.rnav,footer,.toast,.ractions,.redit,#intro,#setup,#quiz,#done,.rp-topbar{display:none!important}
 .rp-page{background:#fff}.rp-view{padding:0}.rp-view .rp{box-shadow:none;padding:0}
 .rp-view .rp-new{break-before:page;border:0;margin:0;padding:0}
 .rp-blk{break-inside:avoid}
