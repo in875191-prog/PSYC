@@ -16,6 +16,7 @@
     <nav class="nav" aria-label="주요 메뉴">
       <button type="button" data-go="compSec">세 가지 요소</button>
       <button type="button" data-go="typeSec">사랑 유형</button>
+      <button type="button" data-go="timeSec">시간과 사랑</button>
     </nav>
     <button class="start" type="button" id="navStart">검사하기</button>
   </div>
@@ -40,7 +41,7 @@
       <div class="steps">
         <div class="step int"><span class="ic">1</span><h3>한 사람 떠올리기</h3><p>사귀는 사람, 좋아하는 사람, 상상 속 이상형 중 한 명을 정해요.</p></div>
         <div class="step pas"><span class="ic">2</span><h3>45문항 답하기</h3><p>각 문장이 내 마음과 얼마나 같은지 골라요. 5분이면 충분해요.</p></div>
-        <div class="step com"><span class="ic">3</span><h3>해석자와 함께 보기</h3><p>점수와 삼각형이 나오면 해석자에게 보여 주세요. 어떤 사랑인지 함께 이야기해요.</p></div>
+        <div class="step com"><span class="ic">3</span><h3>해석자와 함께 보기</h3><p>검사가 끝나면 나오는 접수번호를 해석자에게 알려 주세요. 어떤 사랑인지 함께 이야기해요.</p></div>
       </div>
     </div>
   </section>
@@ -61,6 +62,14 @@
     </div>
   </section>
 
+  <section class="sec soft" id="timeSec">
+    <div class="wrap">
+      <h2>시간이 지나면 삼각형도 변해요</h2>
+      <p class="sub">세 요소는 자라는 속도가 서로 달라요. 열정은 빨리 타오르고 빨리 잦아들고, 친밀감은 꾸준히 쌓이고, 약속·책임감은 천천히 시작해 어느 순간 단단해져요.</p>
+      <div id="timeArt"></div>
+    </div>
+  </section>
+
   <div class="cta-end">
     <h2>지금 내 사랑의 유형을 확인해 보세요</h2>
     <button class="btn green" type="button" id="bandStart">검사 시작하기</button>
@@ -76,7 +85,7 @@
     <div class="field">
       <label for="nameInput">그 사람의 이름이나 애칭 <small>선택</small></label>
       <input id="nameInput" type="text" maxlength="12" placeholder="예: 민지" enterkeyhint="go">
-      <p class="help">질문 속 이름 자리에 들어가요. 비워 두면 ‘그 사람’으로 나와요. 답변은 이 기기에만 저장돼요.</p>
+      <p class="help" id="setupHelp">질문 속 이름 자리에 들어가요. 비워 두면 ‘그 사람’으로 나와요. 답변은 이 기기에만 저장돼요.</p>
     </div>
     <p class="note" id="modeNote"></p>
     <button class="btn green" type="submit">검사 시작</button>
@@ -94,12 +103,12 @@
   </div>
 </section>
 
-<!-- 45개 다 풀면 여기로 옴. 결과 보기 눌러야 점수 보여줌. 유형 해석은 해석자가 직접 해 줌 -->
+<!-- 45개 다 풀면 여기로 옴. 결과 보기 누르면 점수 보여주고, 해석 가이드 PDF가 해석자 메일로 감 -->
 <section id="done" class="screen">
   <div class="fin">
     <div id="doneArt" aria-hidden="true"></div>
     <h1>45문항에 모두 답했어요</h1>
-    <p>결과 보기를 누르면 세 요소 점수와 내 사랑의 삼각형이 나와요. 그 화면을 해석자에게 보여 주면 어떤 사랑인지 함께 풀어 드려요.</p>
+    <p id="doneText">결과 보기를 누르면 세 요소 점수와 내 사랑의 삼각형이 나와요. 그 화면을 해석자에게 보여 주면 어떤 사랑인지 함께 풀어 드려요.</p>
     <button class="btn green" type="button" id="interpBtn">결과 보기</button>
     <button class="linkbtn" type="button" id="doneReview">답변 다시 확인하기</button>
   </div>
