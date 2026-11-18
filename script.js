@@ -14,6 +14,7 @@ var BOOTH = "체험 부스";
 // 한도는 구글 계정마다 따로라서, 다른 구글 계정으로 Code.gs를 하나씩 더 배포해서 주소를 아래에 추가하면 됨
 var MAIL_URLS = [
   "https://script.google.com/macros/s/AKfycbwvc3be0bzvYKRkl0xvGcUL03p0rxkLvS2nPX9gfYhQY6QDMp7tDM84nbhzkjzAjrKp/exec"
+  , "https://script.google.com/macros/s/AKfycbz3vwELKIoh-V9zey179dk1kilzC6WlXWglIYXFarpWGMlLMhdgroda840wYBRRGM0J9Q/exec"
   // , "https://script.google.com/macros/s/두번째_계정_주소/exec"
   // , "https://script.google.com/macros/s/세번째_계정_주소/exec"
 ].filter(function(u){ return u && u.indexOf("script.google.com") >= 0; });
