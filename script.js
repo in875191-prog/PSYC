@@ -10,7 +10,7 @@ var BOOTH = "체험 부스";
 // 해석자에게 메일 보내는 주소. 구글 Apps Script 웹 앱 URL을 넣으면 됨 (만드는 법은 README 참고)
 // 비워 두면 메일 안 보냄
 // 받는 사람 메일 주소는 여기 말고 Apps Script(Code.gs) 안에 적음. 그래야 아무 데나 못 보냄
-var MAIL_URL = "https://script.google.com/macros/s/AKfycbw887PeFBT8D720BioENwLenQ4nE1In_VS_T16VZk6g5zJGw-JUw2-_mEOsGbMeBBQZ/exec";
+var MAIL_URL = "https://script.google.com/macros/s/AKfycbzjPRwztO8A3I1WD4TgJvAXrhW04xfU4XGmFjpSUbFg3V6vfRwTNCk_NdcVCR8ZAmj_/exec";
 
 // 문항 데이터 45개
 // c는 어느 요소 문항인지 번호임. 0이 친밀감, 1이 열정, 2가 약속·책임감 (15개씩)
