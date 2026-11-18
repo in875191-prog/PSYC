@@ -8,9 +8,15 @@ var DEPT  = "심리학과";
 var BOOTH = "체험 부스";
 
 // 해석자에게 메일 보내는 주소. 구글 Apps Script 웹 앱 URL을 넣으면 됨 (만드는 법은 README 참고)
-// 비워 두면 메일 안 보냄
+// 전부 비워 두면 메일 안 보냄
 // 받는 사람 메일 주소는 여기 말고 Apps Script(Code.gs) 안에 적음. 그래야 아무 데나 못 보냄
-var MAIL_URL = "https://script.google.com/macros/s/AKfycbwvc3be0bzvYKRkl0xvGcUL03p0rxkLvS2nPX9gfYhQY6QDMp7tDM84nbhzkjzAjrKp/exec";
+// 주소를 여러 개 넣으면, 앞 주소가 한도(하루 메일 개수)를 다 쓰거나 실패했을 때 다음 주소로 넘어가서 보냄
+// 한도는 구글 계정마다 따로라서, 다른 구글 계정으로 Code.gs를 하나씩 더 배포해서 주소를 아래에 추가하면 됨
+var MAIL_URLS = [
+  "https://script.google.com/macros/s/AKfycbwvc3be0bzvYKRkl0xvGcUL03p0rxkLvS2nPX9gfYhQY6QDMp7tDM84nbhzkjzAjrKp/exec"
+  // , "https://script.google.com/macros/s/두번째_계정_주소/exec"
+  // , "https://script.google.com/macros/s/세번째_계정_주소/exec"
+].filter(function(u){ return u && u.indexOf("script.google.com") >= 0; });
 
 // 문항 데이터 45개
 // c는 어느 요소 문항인지 번호임. 0이 친밀감, 1이 열정, 2가 약속·책임감 (15개씩)
@@ -312,7 +318,7 @@ function toast(msg){ var t = $("#toast"); t.textContent = msg; t.classList.add("
 var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 // 답변 저장. 브라우저 localStorage에 넣어서 새로고침해도 안 날아감
-// 검사를 끝내면 해석 가이드 링크가 해석자 메일로만 감 (MAIL_URL 설정했을 때). 그 외엔 어디에도 안 보냄
+// 검사를 끝내면 해석 가이드 링크가 해석자 메일로만 감 (MAIL_URLS 설정했을 때). 그 외엔 어디에도 안 보냄
 // 저장 키 이름. 데이터 구조 바꾸면 v3로 올려야 옛날 거랑 안 꼬임
 var STORE = "sternberg-love-v2";
 var state = {name:"", target:"partner", answers:new Array(TOTAL).fill(null), page:0};
@@ -371,7 +377,7 @@ $("#compArt").innerHTML = COMP.map(function(c,i){ return '<div class="comp '+c.k
 $("#typeArt").innerHTML = typeCards(null);
 $("#timeArt").innerHTML = '<div class="tchart">'+timeChartSVG()+'</div>'+timeCards(true);
 // 메일 보내기 켜져 있으면 안내 문구도 거기에 맞게 바꿈
-if(MAIL_URL){
+if(MAIL_URLS.length){
   $("#setupHelp").textContent = "질문 속 이름 자리에 들어가요. 비워 두면 ‘그 사람’으로 나와요. 검사를 마치면 해석을 위해 결과가 부스 해석자에게 메일로 전달돼요.";
   $("#doneText").textContent = "결과 보기를 누르면 세 요소 점수와 내 사랑의 삼각형이 나오고, 결과가 해석자에게 전달돼요. 화면에 나오는 접수번호를 해석자에게 알려 주세요.";
 }
@@ -798,31 +804,57 @@ box.innerHTML = buildReport();
 window.addEventListener("hashchange", function(){ if(REPORT) renderReportPage(); });
 
 // 해석자에게 메일 보내기. 화면에는 아무것도 안 띄우고 뒤에서 조용히 보냄
-// 같은 답변으로는 한 번만 보냄. 실패하면 몇 초 뒤에 알아서 다시 시도함 (최대 3번)
+// 같은 답변으로는 한 번만 보냄
+// 한 주소가 실패하면(한도 끝 등) 바로 다음 주소로 넘어감. 전부 실패하면 5초 뒤 처음부터 두 번 더 시도
 var sendBusy = false;
 function reportSig(){ return state.answers.join("")+"|"+state.target+"|"+(state.name||""); }
+// 어느 주소부터 시도할지. 이 기기에서 마지막으로 성공한 주소부터 (한도 찬 주소를 매번 먼저 두드리지 않게)
+// 새 검사를 시작하면 state가 통째로 바뀌어서, 이건 따로 저장함
+// 한도는 하루 지나면 다시 차니까, 날짜가 바뀌면 다시 1번부터
+var MAIL_IDX_KEY = "sternberg-love-mailidx";
+function today(){ var d = new Date(); return d.getFullYear()+"."+pad(d.getMonth()+1)+"."+pad(d.getDate()); }
+function mailStart(){
+  try{ var m = JSON.parse(localStorage.getItem(MAIL_IDX_KEY));
+    if(m && m.day === today() && m.i >= 0 && m.i < MAIL_URLS.length) return m.i; }catch(e){}
+  return 0;
+}
+function mailRemember(i){ try{ localStorage.setItem(MAIL_IDX_KEY, JSON.stringify({i:i, day:today()})); }catch(e){} }
+// 주소 하나로 보내 보기. 한도 초과든 오류든 ok가 아니면 실패로 봄
+function postMail(url, body){
+  // text/plain으로 보내야 브라우저가 사전 확인(CORS preflight)을 안 해서 Apps Script로 바로 감
+  // keepalive: 결과 뜨자마자 창을 닫아도 끝까지 보내게 함
+  return fetch(url, {method:"POST", keepalive:true, headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(body)})
+  .then(function(r){ return r.json(); })
+  .then(function(j){ if(!j || !j.ok) throw new Error(j && j.error || "전송 실패"); return j; });
+}
 function sendReport(tries){
 tries = tries || 0;
-if(!MAIL_URL || sendBusy || state.sent === reportSig()) return;
+if(!MAIL_URLS.length || sendBusy || state.sent === reportSig()) return;
 sendBusy = true;
 var R = compute(), T = TYPES[R.bits], code = codeText(R.bits), sig = reportSig();
 var sc = "친밀감 "+R.avg[0].toFixed(1)+" · 열정 "+R.avg[1].toFixed(1)+" · 약속·책임감 "+R.avg[2].toFixed(1);
 var link = reportLink();
-Promise.resolve().then(function(){
-  var lines = ["접수번호: "+rid(), "떠올린 사람: "+mode().label, "세 요소: "+sc+" (7점 만점)", "점수로 계산한 유형: "+T.name+" ("+code+")", "", "해석 가이드 열기: "+link, "", "링크를 열면 해석 순서와 설명이 모두 나와요. 응답자에게 접수번호를 확인한 뒤 해석해 주세요."];
-  var body = {
-    rid: rid(),
-    subject: "[사랑의 삼각형] 접수 "+rid()+" · "+T.name+" ("+code+")",
-    text: lines.join("\n"),
-    html: '<div style="font-family:sans-serif;font-size:15px;line-height:1.7"><p style="font-size:22px;font-weight:800;margin:0 0 8px">접수번호 '+esc(rid())+'</p><p style="margin:0">떠올린 사람: '+esc(mode().label)+'<br>세 요소: '+esc(sc)+' <span style="color:#999">(7점 만점)</span><br>점수로 계산한 유형: <b>'+esc(T.name)+' ('+code+')</b></p><p style="margin:20px 0"><a href="'+esc(link)+'" style="display:inline-block;background:#88619A;color:#fff;text-decoration:none;font-weight:700;padding:12px 24px;border-radius:999px">해석 가이드 열기</a></p><p style="color:#666;font-size:13px">링크를 열면 해석 순서와 설명이 모두 나와요. 이 메일이 그대로 기록으로 남아요. 응답자에게 접수번호를 확인한 뒤 해석해 주세요.</p></div>',
-    link: link
-  };
-  // text/plain으로 보내야 브라우저가 사전 확인(CORS preflight)을 안 해서 Apps Script로 바로 감
-  // keepalive: 결과 뜨자마자 창을 닫아도 끝까지 보내게 함
-  return fetch(MAIL_URL, {method:"POST", keepalive:true, headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(body)});
-}).then(function(r){ return r.json(); }).then(function(j){
-  if(!j || !j.ok) throw new Error(j && j.error || "전송 실패");
-  state.sent = sig; state.mailLog = {at:Date.now(), ok:true}; saveState(); sendBusy = false;
+var lines = ["접수번호: "+rid(), "떠올린 사람: "+mode().label, "세 요소: "+sc+" (7점 만점)", "점수로 계산한 유형: "+T.name+" ("+code+")", "", "해석 가이드 열기: "+link, "", "링크를 열면 해석 순서와 설명이 모두 나와요. 응답자에게 접수번호를 확인한 뒤 해석해 주세요."];
+var body = {
+  rid: rid(),
+  subject: "[사랑의 삼각형] 접수 "+rid()+" · "+T.name+" ("+code+")",
+  text: lines.join("\n"),
+  html: '<div style="font-family:sans-serif;font-size:15px;line-height:1.7"><p style="font-size:22px;font-weight:800;margin:0 0 8px">접수번호 '+esc(rid())+'</p><p style="margin:0">떠올린 사람: '+esc(mode().label)+'<br>세 요소: '+esc(sc)+' <span style="color:#999">(7점 만점)</span><br>점수로 계산한 유형: <b>'+esc(T.name)+' ('+code+')</b></p><p style="margin:20px 0"><a href="'+esc(link)+'" style="display:inline-block;background:#88619A;color:#fff;text-decoration:none;font-weight:700;padding:12px 24px;border-radius:999px">해석 가이드 열기</a></p><p style="color:#666;font-size:13px">링크를 열면 해석 순서와 설명이 모두 나와요. 이 메일이 그대로 기록으로 남아요. 응답자에게 접수번호를 확인한 뒤 해석해 주세요.</p></div>',
+  link: link
+};
+var start = mailStart(), n = MAIL_URLS.length;
+// k번째 시도: start번 주소부터 차례로, 끝까지 가면 앞쪽 주소로 돌아감
+function attempt(k){
+  var idx = (start + k) % n;
+  return postMail(MAIL_URLS[idx], body).then(function(){ return idx; }, function(e){
+    console.warn("메일 주소 "+(idx+1)+"번 실패:", e && e.message || e);
+    if(k+1 < n) return attempt(k+1);
+    throw e;
+  });
+}
+attempt(0).then(function(idx){
+  mailRemember(idx);
+  state.sent = sig; state.mailLog = {at:Date.now(), ok:true, via:idx+1}; saveState(); sendBusy = false;
 }).catch(function(e){
   // 실패 기록은 mailtest.html에서 볼 수 있음
   console.error(e); sendBusy = false; state.mailLog = {at:Date.now(), ok:false, err:String(e && e.message || e)}; saveState();
